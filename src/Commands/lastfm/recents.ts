@@ -7,11 +7,11 @@ import { v4 } from 'uuid'
 import { IParsedArgs } from '../../typings/Command'
 import { stripIndents } from 'common-tags'
 
-@Command('lmu', {
-    aliases: ['lastfmuser'],
+@Command('recents', {
+    aliases: ['r'],
     category: 'lastfm',
     description: {
-        content: 'LastFM User Info'
+        content: 'LastFM User recent songs'
     }
 })
 export default class extends BaseCommand {
@@ -19,14 +19,16 @@ export default class extends BaseCommand {
     override execute = async (M: Message, { args }: IParsedArgs): Promise<void> => {
         if (!args[0]) return void await M.reply('Please provide a username.')
             try { 
-        const data = await this.client.lastfm.user.getInfo(args[0])
-        const recent = await this.client.lastfm.user.getRecentTracks({ user: args[0], limit: 5 })
-        const weekly = await this.client.lastfm.user.getWeeklyArtistChart({ user: args[0], limit: 5 })
+        const recent = await this.client.lastfm.user.getRecentTracks({ user: args[0] })
             
         await M.reply(
             stripIndents`
-                Username: ${data.name}
-                Playcount: ${data.playcount}
+             
+                Recent Tracks:
+                ${recent.tracks.map((track, index) => `${index + 1}. ${track.name} - ${track.artist.name}`).join('\n')}
+                
+   
+
                 `
         )
     } catch(e) {

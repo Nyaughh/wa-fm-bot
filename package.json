@@ -67,6 +67,7 @@
     "replicate": "^0.29.1",
     "rimraf": "^3.0.2",
     "spotifydl-core": "^0.2.0",
-    "wa-sticker-formatter": "^4.4.4"
+    "wa-sticker-formatter": "^4.4.4",
+    "whatsapp-web.js": "^1.23.0"
   }
 }
