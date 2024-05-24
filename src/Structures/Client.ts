@@ -21,6 +21,8 @@ import { BAILEYS_METHODS } from '../Constants'
 
 import { admins } from '../orion'
 import { ContactX } from '../Database'
+import { LastFm } from '@imikailoby/lastfm-ts'
+import LastFM from 'lastfm-typed'
 
 export type DownloadableMessage = Parameters<typeof downloadContentFromMessage>[0]
 export type Baileys = ReturnType<typeof create>
@@ -45,6 +47,7 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
 
     public bots = new Array<{ jid: string; name: string }>()
 
+    public lastfm = new LastFM(process.env.LASTFM_API_KEY as string); 
     constructor(
         public config: IClientConfig,
         public database: Database,

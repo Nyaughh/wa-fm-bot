@@ -8,7 +8,8 @@ import {
     SessionModel,
     TSessionDocument,
     ContactModel,
-    ContactX
+    ContactX,
+    LastFMModel
 } from '../Database'
 import BotModel from '../Database/Models/BotModel'
 
@@ -18,11 +19,16 @@ export default class Database {
         group: GroupModel,
         session: SessionModel,
         bot: BotModel,
-        contact: ContactModel
+        contact: ContactModel,
+        lastfm: LastFMModel
     } as const
 
     public get Bot() {
         return this.DB.bot
+    }
+
+    public get LastFM() {
+        return this.DB.lastfm
     }
 
     public connection?: Connection
