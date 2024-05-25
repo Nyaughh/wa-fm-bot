@@ -7,26 +7,23 @@ import { stripIndent } from 'common-tags'
 @Command('login', {
     aliases: ['l'],
     dm: true,
-    category: 'lastfm',
+    category: 'LastFM',
     description: {
         content: 'Login to your lastfm account.'
     }
 })
 export default class extends BaseCommand {
-    private currentlyLoggingIn: Map<
-        string,
-        {
-            token: string
-        }
-    > = new Map()
+    private currentlyLoggingIn: Map<string, {
+        token: string
+    }> = new Map()
 
     override execute = async (M: Message, { flags }: IParsedArgs): Promise<void> => {
         const user = await this.client.database.User.findOne({ jid: M.sender.jid }).lean()
 
-        if (user?.lastfm) return void (await M.reply(`You're already logged in.`))
+        if (user?.lastfm) return void await M.reply(`You're already logged in.`)
         const has = this.currentlyLoggingIn.has(M.sender.jid)
         if ('done' in flags) {
-            if (!has) return void (await M.reply(`You're not currently logging in.`))
+            if (!has) return void await M.reply(`You're not currently logging in.`)
             const session = await this.client.lastfm.auth.getSession(this.currentlyLoggingIn.get(M.sender.jid)!.token)
             console.log(session)
             if (!session.key) {
@@ -41,28 +38,22 @@ export default class extends BaseCommand {
         }
 
         if ('cancel' in flags) {
-            if (!has) return void (await M.reply(`You're not currently logging in.`))
+            if (!has) return void await M.reply(`You're not currently logging in.`)
             await M.reply(`Cancelled the login process.`)
             this.currentlyLoggingIn.delete(M.sender.jid)
-            return
+            return 
         }
 
         const token = await this.client.lastfm.auth.getToken()
         this.currentlyLoggingIn.set(M.sender.jid, { token })
         await M.replyWithButtons(
-            stripIndent`
+           stripIndent `
                 Authenticate with LastFM using this link
                 
                 https://www.last.fm/api/auth?api_key=${process.env.LASTFM_API_KEY}&token=${token}
 
                 Use the listed actions to continue.
-            `,
-            'text',
-            undefined,
-            getUrl(token),
-            undefined,
-            undefined,
-            {
+            `, 'text', undefined, getUrl(token), undefined, undefined, {
                 buttonText: 'Actions',
                 sections: [
                     {
@@ -81,6 +72,10 @@ export default class extends BaseCommand {
                 ]
             }
         )
+        
+    
+
+    
     }
 }
 
