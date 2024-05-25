@@ -2,41 +2,86 @@ import { BaseCommand } from '../../Structures/Command/BaseCommand'
 import { Command } from '../../Structures/Command/Command'
 import Message from '../../Structures/Message'
 import { v4 } from 'uuid'
+import { IParsedArgs } from '../../typings/Command'
+import { stripIndent } from 'common-tags'
 @Command('login', {
     aliases: ['l'],
     dm: true,
-    category: 'Core',
+    category: 'lastfm',
     description: {
         content: 'Login to your lastfm account.'
     }
 })
 export default class extends BaseCommand {
-    private currentlyLoggingIn: Set<string> = new Set()
+    private currentlyLoggingIn: Map<
+        string,
+        {
+            token: string
+        }
+    > = new Map()
 
-    override execute = async (M: Message): Promise<void> => {
-        const has = await this.client.database.LastFM.findOne({ jid: M.sender.jid })
-        const lastfmCreds = await this.client.database.LastFM.findOne({ jid: M.sender.jid })
-        if (lastfmCreds && lastfmCreds.lastFmToken && lastfmCreds.lastFmSessionKey) {
-           if (!has) return void await M.reply('You are already logged in.')
-            return void await M.reply('You\'ve successfully logged in.')
+    override execute = async (M: Message, { flags }: IParsedArgs): Promise<void> => {
+        const user = await this.client.database.User.findOne({ jid: M.sender.jid }).lean()
+
+        if (user?.lastfm) return void (await M.reply(`You're already logged in.`))
+        const has = this.currentlyLoggingIn.has(M.sender.jid)
+        if ('done' in flags) {
+            if (!has) return void (await M.reply(`You're not currently logging in.`))
+            const session = await this.client.lastfm.auth.getSession(this.currentlyLoggingIn.get(M.sender.jid)!.token)
+            console.log(session)
+            if (!session.key) {
+                await M.reply(`Failed to login to LastFM. Please try again.`)
+                this.currentlyLoggingIn.delete(M.sender.jid)
+                return
+            }
+            await M.reply(`Successfully logged in as ${session.name}`)
+            await this.client.database.User.updateOne({ jid: M.sender.jid }, { lastfm: session.key })
+            this.currentlyLoggingIn.delete(M.sender.jid)
+            return
         }
 
-        this.currentlyLoggingIn.add(M.sender.jid)
-        const uniqueId = v4()
-
-        if (lastfmCreds) {
-            await lastfmCreds.deleteOne({ uniqueId })
+        if ('cancel' in flags) {
+            if (!has) return void (await M.reply(`You're not currently logging in.`))
+            await M.reply(`Cancelled the login process.`)
+            this.currentlyLoggingIn.delete(M.sender.jid)
+            return
         }
-        await this.client.database.LastFM.create({
-            jid: M.sender.jid,
-            uniqueId,
-            lastFmToken: '',
-            lastFmSessionKey: ''
-        })
-        
-        return void await M.reply(`Please visit this link and use this command again: ${getUrl(uniqueId)}`)
-        
+
+        const token = await this.client.lastfm.auth.getToken()
+        this.currentlyLoggingIn.set(M.sender.jid, { token })
+        await M.replyWithButtons(
+            stripIndent`
+                Authenticate with LastFM using this link
+                
+                https://www.last.fm/api/auth?api_key=${process.env.LASTFM_API_KEY}&token=${token}
+
+                Use the listed actions to continue.
+            `,
+            'text',
+            undefined,
+            getUrl(token),
+            undefined,
+            undefined,
+            {
+                buttonText: 'Actions',
+                sections: [
+                    {
+                        title: 'Continue Authentication',
+                        rows: [
+                            {
+                                title: 'Finish',
+                                id: `${this.client.config.prefix}login --done`
+                            },
+                            {
+                                title: 'Cancel',
+                                id: `${this.client.config.prefix}login --cancel`
+                            }
+                        ]
+                    }
+                ]
+            }
+        )
     }
 }
 
-const getUrl = (uniqueId: string) => `https://login-fm.vercel.app/api/login/${uniqueId}`
+const getUrl = (token: string) => `https://www.last.fm/api/auth?api_key=${process.env.LASTFM_API_KEY}&token=${token}`
