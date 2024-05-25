@@ -52,7 +52,6 @@ import { AuthenticationFromDatabase } from '../src/Structures/Authentication'
     const messageHandler = new MessageHandler(join(__dirname, 'Commands'), client)
     messageHandler.loadCommands()
 
-    await client.loadbans()
     console.log('Loaded bans!')
 
     const eventHandler = new EventHandler(client)

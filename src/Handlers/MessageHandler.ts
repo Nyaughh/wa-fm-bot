@@ -57,22 +57,8 @@ export class MessageHandler {
             this.logMessage(command, M.sender.username, M.group?.title, cmd, len)
         const isCommand = M.content.startsWith(this.client.config.prefix)
         const info = M.group ? await this.client.database.getGroup(M.from) : undefined
-        if (M.group && info) {
-            if (info.roleping && !isCommand) {
-                //find all words starting with @
-                const mentions = M.content.match(/@[a-zA-Z0-9_]+/g)?.map((m) => m.slice(1)) ?? []
-                if (mentions.length) {
-                    const roles = info.roles.map((x) => x.name)
-                    const valid = mentions.filter((mention) => roles.includes(mention))
-                    if (valid.length) {
-                        this.commands.get('tag')?.execute(M, {
-                            ...this.parseArgs(M.content),
-                            args: valid
-                        })
-                    }
-                }
-            }
-        }
+        await this.client.database.getUser(M.sender.jid)
+
         if (!isCommand) return void log()
         const parsedArgs = this.parseArgs(M.content)
         log(true, parsedArgs.cmd, parsedArgs.args.length)

@@ -8,6 +8,8 @@ class Users {
     @prop({ type: String })
     name?: string
 
+    @prop({ type: String })
+    lastfm?: string
 }
 
 export type User = Users & Document

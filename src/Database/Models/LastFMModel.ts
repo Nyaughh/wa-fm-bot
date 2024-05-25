@@ -7,8 +7,8 @@ export interface lastFM extends Document {
 }
  */
 
-import { getModelForClass, prop } from "@typegoose/typegoose";
-import { Document } from "mongoose";
+import { getModelForClass, prop } from '@typegoose/typegoose'
+import { Document } from 'mongoose'
 
 export class LastFM {
     @prop({ type: String, required: true, unique: true })

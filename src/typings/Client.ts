@@ -58,4 +58,3 @@ export interface IRole {
     name: string
     members: (JID | string)[]
 }
-

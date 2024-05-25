@@ -1,4 +1,12 @@
-import { AnyMessageContent, MessageType, WAMessage, MiscMessageGenerationOptions, proto } from '@whiskeysockets/baileys'
+import {
+    AnyMessageContent,
+    MessageType,
+    WAMessage,
+    MiscMessageGenerationOptions,
+    proto,
+    generateWAMessageContent,
+    generateWAMessageFromContent
+} from '@whiskeysockets/baileys'
 import { GID, IUser, JID } from '../typings/Client'
 import Client from './Client'
 import Group from './Group'
@@ -30,6 +38,10 @@ class Message {
         if (M.message?.ephemeralMessage) this.M.message = M.message.ephemeralMessage.message
         const { type } = this
         this.content = ((): string => {
+            if (this.M.message?.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson) {
+                const json = JSON.parse(this.M.message.interactiveResponseMessage.nativeFlowResponseMessage.paramsJson)
+                if (json.id) return json.id
+            }
             if (this.M.message?.buttonsResponseMessage)
                 return this.M.message?.buttonsResponseMessage?.selectedButtonId || ''
             if (this.M.message?.listResponseMessage)
@@ -132,33 +144,100 @@ class Message {
         )
     }
 
-    public replyWithButtons = async (
-        text: string,
-        button: string[],
-        media?: {
-            type: string
-            content: Buffer
-        }
-    ): ReturnType<typeof this.client.sendMessage> => {
-        const rest = media ? { [media.type]: media.content } : {}
-        const buttons = button.map((displayText) => ({
-            type: 1,
-            buttonId: 'ETHEREAL-BUTTON-'.concat(this.client.util.getRandomString(10)),
-            buttonText: {
-                displayText
-            }
-        }))
-        return this.client.sendMessage(
-            this.from,
+    generateWaContent = async (content: string | Buffer, type: unknown) =>
+        await generateWAMessageContent(
+            { [type as 'text']: content as string },
             {
-                text,
-                buttons,
-                ...rest
-            },
-            {
-                quoted: this.M
+                upload: this.client.waUploadToServer
             }
         )
+
+    replyWithButtons = async (
+        content: string | Buffer,
+        type: 'text' | 'image' | 'video' | 'document',
+        button?: [string, string][],
+        caption?: string,
+        urls?: [string, string][],
+        copy?: string,
+        options: {
+            mentions?: string[]
+            sections?: any[]
+            buttonText?: string
+        } = {}
+    ) => {
+        // Validate that a buffer is not sent as a text message
+        if (type === 'text' && Buffer.isBuffer(content)) {
+            throw new Error('Cannot send a Buffer as a text message')
+        }
+
+        // Helper function to generate button objects
+        const generateButton = (type: string, params: object) => ({
+            name: type,
+            buttonParamsJson: JSON.stringify(params)
+        })
+
+        // Initialize buttons array
+        let buttons: {
+            name: string
+            buttonParamsJson: string
+        }[] = []
+
+        if (button) {
+            buttons = button.map(([displayText, id]) =>
+                generateButton('quick_reply', { display_text: displayText, id: this.client.config.prefix + id })
+            )
+        }
+        if (copy) {
+            buttons.push(generateButton('cta_copy', { display_text: 'Copy', copy_code: copy }))
+        }
+        if (urls) {
+            urls.forEach(([displayText, url]) =>
+                buttons.push(generateButton('cta_url', { display_text: displayText, url, merchant_url: url }))
+            )
+        }
+
+        // Generate media content if type is not text
+        const media = type === 'text' ? '' : await this.generateWaContent(content, type)
+        const contentType = type + 'Message'
+
+        // Construct the interactive message structure
+        const interactiveMessage = {
+            body: { text: type === 'text' ? (content as string) : caption },
+            footer: { text: options.sections?.length ? 'LastFM' : '' },
+            header: media
+                ? {
+                      hasMediaAttachment: false,
+                      [contentType]: media[contentType as 'imageMessage' | 'videoMessage' | 'documentMessage']
+                  }
+                : {},
+            contextInfo: { mentionedJid: options.mentions },
+            nativeFlowMessage: {
+                buttons: options.sections?.length
+                    ? [
+                          {
+                              name: 'single_select',
+                              buttonParamsJson: JSON.stringify({
+                                  title: options.buttonText,
+                                  sections: options.sections
+                              })
+                          }
+                      ]
+                    : buttons,
+                messageParamsJson: ''
+            }
+        }
+
+        // Generate the WA message from content
+        const { message, key } = generateWAMessageFromContent(
+            this.from,
+            {
+                viewOnceMessage: { message: { interactiveMessage: interactiveMessage } }
+            },
+            { quoted: this.M } as any
+        )
+
+        // Relay the message
+        return this.client.relayMessage(this.from, message!, { messageId: key.id! })
     }
 
     public replyRaw = async (

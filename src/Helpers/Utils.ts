@@ -130,5 +130,4 @@ export default class Util {
             return jid
         } else return jid
     }
-
 }

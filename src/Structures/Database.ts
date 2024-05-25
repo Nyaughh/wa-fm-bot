@@ -124,5 +124,4 @@ export default class Database {
         if (!user) await new this.DB.user({ jid }).save()
         await this.User.updateOne({ jid }, { $set: { banned: false, banReason: '' } })
     }
-
 }

@@ -47,7 +47,9 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
 
     public bots = new Array<{ jid: string; name: string }>()
 
-    public lastfm = new LastFM(process.env.LASTFM_API_KEY as string); 
+    public lastfm = new LastFM(process.env.LASTFM_API_KEY as string, {
+        apiSecret: process.env.LASTFM_API_SECRET as string
+    })
     constructor(
         public config: IClientConfig,
         public database: Database,
@@ -66,7 +68,6 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
             if (!this.sock) return
 
             this.store?.bind(this.sock.ev)
-
 
             this.boot++
 
@@ -197,7 +198,6 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
     public unban = (jid: string): void => {
         this.banned.delete(jid)
     }
-
 
     private eventStore = new Map<string | symbol, (...args: any[]) => any>()
 

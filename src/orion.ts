@@ -1,6 +1,3 @@
-export const publicGroups = [
-
-]
+export const publicGroups = []
 
 export const admins = []
-
