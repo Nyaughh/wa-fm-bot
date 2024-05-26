@@ -34,7 +34,7 @@ export default class extends BaseCommand {
         try {
             const { tracks } = await this.client.lastfm.user.getRecentTracks({ user: user, limit: 1 })
 
-            const mostRecentTrack = tracks[0]
+            const mostRecentTrack = tracks[0]
 
             const track = await searchTrack(mostRecentTrack.name, mostRecentTrack.artist.name)
 
@@ -42,10 +42,8 @@ export default class extends BaseCommand {
 
             await M.reply(
                 stripIndents`
-                
-                ${data.name} is Currently Listening to:
-                https://open.spotify.com/track/${track.uri.replace('spotify:track:', '')}
-
+                    ${data.name} ${tracks[0].nowplaying ? 'is now listening to' : 'last listened to'}:
+                    https://open.spotify.com/track/${track.uri.replace('spotify:track:', '')}
                 `
             )
         } catch (e) {

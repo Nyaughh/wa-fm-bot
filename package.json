@@ -49,6 +49,7 @@
     "@google/generative-ai": "^0.5.0",
     "@imikailoby/lastfm-ts": "^2.0.1",
     "@nechlophomeriaa/spotify-finder": "^1.0.3",
+    "@settlin/collage": "^2.0.1",
     "@spotify/web-api-ts-sdk": "^1.2.0",
     "@typegoose/typegoose": "^9.7.1",
     "@whiskeysockets/baileys": "^6.7.2",

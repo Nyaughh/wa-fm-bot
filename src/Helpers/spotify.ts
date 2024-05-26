@@ -1,4 +1,4 @@
-import { SpotifyApi } from '@spotify/web-api-ts-sdk';
+import { SpotifyApi } from '@spotify/web-api-ts-sdk'
 
 const sdk = SpotifyApi.withClientCredentials(
     process.env.SPOTIFY_CLIENT_ID as string,
@@ -6,6 +6,6 @@ const sdk = SpotifyApi.withClientCredentials(
 )
 
 export const searchTrack = async (track: string, artist: string) => {
-    const search = await sdk.search(`track:${track} artist:${artist}`, ['track']);
+    const search = await sdk.search(`track:${track} artist:${artist}`, ['track'])
     return search.tracks.items[0]
 }

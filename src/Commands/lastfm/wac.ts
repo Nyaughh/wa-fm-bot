@@ -5,8 +5,8 @@ import { v4 } from 'uuid'
 import { IParsedArgs } from '../../typings/Command'
 import { stripIndents } from 'common-tags'
 
-@Command('Weekly Album Chart', {
-    aliases: ['wac'],
+@Command('wac', {
+    aliases: ['weeklyalbumchart'],
     category: 'LastFM',
     description: {
         content: 'LastFM User Weekly Album Chart'

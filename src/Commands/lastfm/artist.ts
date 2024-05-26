@@ -1,8 +1,8 @@
-import { BaseCommand } from '../../Structures/Command/BaseCommand';
-import { Command } from '../../Structures/Command/Command';
-import Message from '../../Structures/Message';
-import { IParsedArgs } from '../../typings/Command';
-import { stripIndents } from 'common-tags';
+import { BaseCommand } from '../../Structures/Command/BaseCommand'
+import { Command } from '../../Structures/Command/Command'
+import Message from '../../Structures/Message'
+import { IParsedArgs } from '../../typings/Command'
+import { stripIndents } from 'common-tags'
 
 @Command('artist', {
     aliases: ['artist'],
@@ -14,16 +14,16 @@ import { stripIndents } from 'common-tags';
 export default class extends BaseCommand {
     override execute = async (M: Message, { text }: IParsedArgs): Promise<void> => {
         try {
-            const artist = text.trim();
-            
+            const artist = text.trim()
+
             if (!artist) {
-                return void await M.reply('Enter the correct artist name.');
+                return void (await M.reply('Enter the correct artist name.'))
             }
 
-            const data = await this.client.lastfm.artist.getInfo({ artist });
+            const data = await this.client.lastfm.artist.getInfo({ artist })
 
             // Function to strip HTML tags using regular expressions
-            const cleanText = (htmlText: string) => htmlText.replace(/(<([^>]+)>)/gi, "");
+            const cleanText = (htmlText: string) => htmlText.replace(/(<([^>]+)>)/gi, '')
 
             await M.reply(
                 stripIndents`
@@ -37,10 +37,10 @@ export default class extends BaseCommand {
 
                 Listen: ${data.url}
                 `
-            );
+            )
         } catch (e) {
-            console.log(e);
-            return void await M.reply('Invalid Artist Name');
+            console.log(e)
+            return void (await M.reply('Invalid Artist Name'))
         }
     }
 }

@@ -163,6 +163,8 @@ class Message {
             mentions?: string[]
             sections?: any[]
             buttonText?: string
+            headerText?: string
+            footerText?: string
         } = {}
     ) => {
         // Validate that a buffer is not sent as a text message
@@ -203,13 +205,13 @@ class Message {
         // Construct the interactive message structure
         const interactiveMessage = {
             body: { text: type === 'text' ? (content as string) : caption },
-            footer: { text: options.sections?.length ? 'LastFM' : '' },
+            footer: { text: options.sections?.length && options.footerText ? options.footerText : '' },
             header: media
                 ? {
                       hasMediaAttachment: false,
                       [contentType]: media[contentType as 'imageMessage' | 'videoMessage' | 'documentMessage']
                   }
-                : {},
+                : { title: options.sections?.length && options.headerText ? options.headerText : '' },
             contextInfo: { mentionedJid: options.mentions },
             nativeFlowMessage: {
                 buttons: options.sections?.length
