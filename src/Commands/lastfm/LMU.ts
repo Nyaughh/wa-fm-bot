@@ -33,14 +33,16 @@ export default class extends BaseCommand {
 
         try {
             const data = await this.client.lastfm.user.getInfo(user)
-            const recent = await this.client.lastfm.user.getRecentTracks({ user: user, limit: 5 })
+            const recent = await this.client.lastfm.user.getRecentTracks({ user: user, limit: 1 })
             const weekly = await this.client.lastfm.user.getWeeklyArtistChart({ user: user, limit: 5 })
+            const obsession = await this.client.lastfm.user.getWeeklyTrackChart({ user: user, limit: 1 })
 
             const image = data.image.find((i) => i.size === 'large') ?? data.image.find((i) => i.size === 'extralarge')
 
             const text = stripIndents`
                     Username: ${data.name}
                     Playcount: ${data.playcount}
+                    Current Obsession: ${obsession.tracks[0].name} by ${obsession.tracks[0].artist.name}
             `
             if (image) {
                 const imageData = await axios.get(image.url, { responseType: 'arraybuffer' })
