@@ -14,7 +14,7 @@ const createCollage = require('@settlin/collage')
     }
 })
 export default class extends BaseCommand {
-    private gridSizes = ['3x3', '4x4', '5x5']
+    private gridSizes = ['3x3', '4x4', '5x5', '10x10']
 
     override execute = async (M: Message, { text, flags }: IParsedArgs): Promise<void> => {
         let user = flags.user ?? text.trim()
