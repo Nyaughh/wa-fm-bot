@@ -1,9 +1,8 @@
 import { BaseCommand } from '../../Structures/Command/BaseCommand'
 import { Command } from '../../Structures/Command/Command'
 import Message from '../../Structures/Message'
-import { v4 } from 'uuid'
 import { IParsedArgs } from '../../typings/Command'
-import { stripIndent, stripIndents } from 'common-tags'
+import { stripIndents } from 'common-tags'
 @Command('login', {
     aliases: ['l'],
     dm: true,

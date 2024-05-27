@@ -32,7 +32,6 @@
     "@types/mocha": "^9.0.0",
     "@types/node": "^17.0.8",
     "@types/qr-image": "^3.2.5",
-    "@types/uuid": "^9.0.8",
     "@types/yt-search": "^2.3.2",
     "@typescript-eslint/eslint-plugin": "^5.9.0",
     "@typescript-eslint/parser": "^5.9.0",
@@ -46,8 +45,6 @@
   },
   "dependencies": {
     "@adiwajshing/baileys": "^4.4.0",
-    "@google/generative-ai": "^0.5.0",
-    "@imikailoby/lastfm-ts": "^2.0.1",
     "@nechlophomeriaa/spotify-finder": "^1.0.3",
     "@settlin/collage": "^2.0.1",
     "@spotify/web-api-ts-sdk": "^1.2.0",
