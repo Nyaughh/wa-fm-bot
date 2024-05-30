@@ -38,7 +38,7 @@ export default class extends BaseCommand {
                     : ''
             }
         `)
-        let base = `Commands:`
+        let base = '*LastFM Bot Command*'
         const modules = (this.handler?.categories || [])
             .filter(({ name }) => name !== 'Dev')
             .sort((element) =>
@@ -51,7 +51,7 @@ export default class extends BaseCommand {
                 title: cap,
                 rows: []
             }
-            base += `\n\n*${cap}:\`\`\`${
+            base += `\n\n*${cap}* =>\`\`\`${
                 mod.commands
                     .map((x) => {
                         section.rows?.push({
