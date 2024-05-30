@@ -5,7 +5,7 @@
   "main": "build/app.js",
   "scripts": {
     "test": "ts-node src/app.ts",
-    "build": "tsc -p .",
+    "build": "rimraf build && tsc",
     "dev": "nodemon src/app.ts",
     "start": "node build/app.js",
     "lint": "eslint src/**/*.ts",
