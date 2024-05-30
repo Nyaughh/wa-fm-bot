@@ -38,7 +38,7 @@ export default class extends BaseCommand {
                     : ''
             }
         `)
-        let base = '*LastFM Bot Command*'
+        let base = '*LastFM Bot Commands*'
         const modules = (this.handler?.categories || [])
             .filter(({ name }) => name !== 'Dev')
             .sort((element) =>
