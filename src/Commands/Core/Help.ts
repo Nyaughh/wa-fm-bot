@@ -51,17 +51,17 @@ export default class extends BaseCommand {
                 title: cap,
                 rows: []
             }
-            base += `\n\n*${cap}* =>\`\`\`${
+            base += `\n\n*${cap}* => ${
                 mod.commands
                     .map((x) => {
                         section.rows?.push({
                             title: `${x.id}`,
                             rowId: `${this.client.config.prefix}help ${x.id}`
                         })
-                        return x.id
+                        return `\`${x.id}\``
                     })
                     .join(', ') || 'None'
-            }\`\`\``
+            }`
             sections.push(section)
         }
         return void this.client.sendMessage(from, {
