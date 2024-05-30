@@ -21,26 +21,24 @@ export default class extends BaseCommand {
         })()
         if (command)
             return void reply(stripIndents`
-            🟥 Command: ${command.id}
-            🟧 Category: ${command.options.category}
-            🟨 Aliases: ${command.options.aliases.join(', ').trim() ?? 'None'}
-            🟩 Cooldown: ${command.options.cooldown ?? 'None'}
-            🟦 Admin: ${command.options.admin ? 'True' : 'False'}
-            🟪 Usage: ${this.client.config.prefix}${command.id}${command.options.description.usage ?? ''}
-            ⬜ Description: ${command.options.description.content}
+            Command: ${command.id}
+            Category: ${command.options.category}
+            Aliases: ${command.options.aliases.join(', ').trim() ?? 'None'}
+            Cooldown: ${command.options.cooldown ?? 'None'}
+            Admin: ${command.options.admin ? 'True' : 'False'}
+            Usage: ${this.client.config.prefix}${command.id}${command.options.description.usage ?? ''}
+            Description: ${command.options.description.content}
             ${
                 command.options.flags
                     ? `
-            ⬛ Flags: \n${Object.entries(command.options.flags)
-                .map(([flag, description]) => `≫ ${flag} - ${description}`)
+            Flags: \n${Object.entries(command.options.flags)
+                .map(([flag, description]) => `| ${flag} - ${description}`)
                 .join('\n')}    
             `
                     : ''
             }
         `)
-        let base = `*Hello 👋 @${sender.jid.split('@')[0]}*
-                    This help menu is designed to help you get started with the bot.`
-        base += '\n\n ⟾ *📪Command list📪*'
+        let base = `Commands:`
         const modules = (this.handler?.categories || [])
             .filter(({ name }) => name !== 'Dev')
             .sort((element) =>
@@ -53,7 +51,7 @@ export default class extends BaseCommand {
                 title: cap,
                 rows: []
             }
-            base += `\n\n*━━━━❰ ${cap} ❱━━━━*\n➪ \`\`\`${
+            base += `\n\n*${cap}:\`\`\`${
                 mod.commands
                     .map((x) => {
                         section.rows?.push({
@@ -66,11 +64,6 @@ export default class extends BaseCommand {
             }\`\`\``
             sections.push(section)
         }
-        base += '\n\n'
-        base += stripIndents`*📇 Notes:*
-                    *➪ Use ${this.client.config.prefix}help <command name> from help the list to see its description and usage*
-                    *➪ Eg: ${this.client.config.prefix}help profile*
-                    *➪ <> means required and [ ] means optional, don't include <> or [ ] when using command.*`
         return void this.client.sendMessage(from, {
             text: base,
             mentions: [sender.jid]
