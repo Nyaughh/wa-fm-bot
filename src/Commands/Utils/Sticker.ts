@@ -38,7 +38,7 @@ export default class extends BaseCommand {
             typeof media === 'string' ? media : await this.client.downloadMediaMessage(media as Message),
             {
                 pack: pack ?? flags.pack ?? 'Sticker',
-                author: title ?? flags.author ?? 'Gaia',
+                author: title ?? flags.author ?? 'FMBOT',
                 categories: [(flags.category || '🌹') as Categories],
                 type: flags.crop ? 'crop' : flags.stretch ? 'default' : 'full',
                 quality: quality < 100 && quality > 0 ? quality : 70
