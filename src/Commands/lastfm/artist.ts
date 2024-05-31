@@ -28,7 +28,6 @@ export default class extends BaseCommand {
             await M.reply(
                 stripIndents`
                 Name: ${data.name}
-                Debuted: ${data.bio?.published ?? 'Unknown'}
                 About: ${cleanText(data.bio?.summary ?? 'No summary available')}
                 
                 Stats:
