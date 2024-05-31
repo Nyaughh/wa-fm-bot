@@ -52,7 +52,7 @@ export default class extends BaseCommand {
             await M.reply(stripIndents`
                 *${artistName}* in ${M.group!.title}
 
-                ${data.map((d, i) => `${i + 1}. @${d.jid.split('@')[0]} - ${d.plays} plays`).join('\n')}
+                ${data.map((d, i) => `${i + 1}. @${d.jid.split('')[0]} - ${d.plays} plays`).join('\n')}
             
                 ${url}
             `, 'text', undefined, undefined, data.map(({ jid }) => jid))
