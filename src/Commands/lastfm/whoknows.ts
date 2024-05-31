@@ -47,12 +47,14 @@ export default class extends BaseCommand {
                     return (b.value as any).plays - (a.value as any).plays
                 }
                 return 0
-            }).map((r) => r.status === 'fulfilled' ? r.value : null).filter((r): r  is { username: string, plays: number, jid: string } => r !== null)
-            const waname = this.client.getContact(user.jid).username
+            }).map((r) => r.status === 'fulfilled' ? {
+                ...r.value,
+                waname: this.client.getContact(r.value.jid).username ?? ''
+            } : null).filter((r): r  is { username: string, plays: number, jid: string, waname: string } => r !== null)
             await M.reply(stripIndents`
                 *${artistName}* in ${M.group!.title}
 
-                ${data.map((d, i) => `${i + 1}. ${d.username} ${waname === 'user' ? '' : `(${waname})`}- ${d.plays} plays`).join('\n')}
+                ${data.map((d, i) => `${i + 1}. ${d.username} ${!d.waname || (d.waname === 'user' )? '' : `(${d?.waname})`}- ${d.plays} plays`).join('\n')}
 
             
                 ${url}
