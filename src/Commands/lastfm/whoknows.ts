@@ -54,7 +54,7 @@ export default class extends BaseCommand {
             await M.reply(stripIndents`
                 *${artistName}* in ${M.group!.title}
 
-                ${data.map((d, i) => `${i + 1}. ${d.username} ${!d.waname || (d.waname === 'user' )? '' : `(${d?.waname})`}- ${d.plays} plays`).join('\n')}
+                ${data.map((d, i) => `${i + 1}. ${d.username} ${!d.waname || (d.waname === 'User' )? '' : `(${d?.waname})`}- ${d.plays} plays`).join('\n')}
 
             
                 ${url}
