@@ -48,15 +48,15 @@ export default class extends BaseCommand {
                 }
                 return 0
             }).map((r) => r.status === 'fulfilled' ? r.value : null).filter((r): r  is { username: string, plays: number, jid: string } => r !== null)
-
+            const waname = this.client.getContact(user.jid).username
             await M.reply(stripIndents`
                 *${artistName}* in ${M.group!.title}
 
-                ${data.map((d, i) => `${i + 1}. ${d.username} - ${d.plays} plays`).join('\n')}
+                ${data.map((d, i) => `${i + 1}. ${d.username} ${waname === 'user' ? '' : `(${waname})`}- ${d.plays} plays`).join('\n')}
 
             
                 ${url}
-            `, 'text', undefined, undefined, data.map(({ jid }) => jid))
+            `, 'text', undefined, undefined)
 
         
         } catch (e) {
