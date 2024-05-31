@@ -36,14 +36,14 @@ export default class extends BaseCommand {
             const weekly = await this.client.lastfm.user.getWeeklyArtistChart({ user: user, limit: 5 })
             const obsession = await this.client.lastfm.user.getWeeklyTrackChart({ user: user, limit: 1 })
 
-            const image = data.image.find((i) => i.size === 'large') ?? data.image.find((i) => i.size === 'extralarge')
+            const image = data.image.find((i) => i.size === 'large') || data.image.find((i) => i.size === 'extralarge')
 
             const text = stripIndents`
                     Username: ${data.name}
                     Playcount: ${data.playcount}
                     Current Obsession: ${obsession.tracks[0].name} by ${obsession.tracks[0].artist.name}
             `
-            if (image) {
+            if (image?.url) {
                 const imageData = await axios.get(image.url, { responseType: 'arraybuffer' })
                 console.log(imageData)
                 if (imageData.request.res.responseUrl.includes('.gif')) {
