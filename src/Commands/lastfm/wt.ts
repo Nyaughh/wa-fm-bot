@@ -43,7 +43,7 @@ export default class extends BaseCommand {
                     track: currentTrack.trackName
                 }, { username: u.lastfm, sk: u.lastfm });
                 const { name: username } = await this.client.lastfm.user.getInfo({ user: u.lastfm });
-                return { username, plays: trackInfo.userplaycount, jid: u.jid };
+                return { username, plays: trackInfo.userplaycount ?? 0, jid: u.jid };
             }))).sort((a, b) => {
                 if (a.status === 'fulfilled' && b.status === 'fulfilled') {
                     return (b.value as any).plays - (a.value as any).plays;
@@ -52,7 +52,7 @@ export default class extends BaseCommand {
             }).map((r) => r.status === 'fulfilled' ? {
                 ...r.value,
                 waname: this.client.getContact(r.value.jid).username ?? ''
-            } : null).filter((r): r is { username: string, plays: number, jid: string, waname: string } => r !== null);
+            } : null).filter((r): r is { username: string, plays: number, jid: string, waname: string } => r !== null && r.plays > 0);
 
             await M.reply(stripIndents`
                 *${trackName}* by *${artistName}* in ${M.group!.title}
