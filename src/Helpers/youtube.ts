@@ -37,14 +37,11 @@ export class YTDownloader {
     constructor(private url: string, private type = 'video') {
         this.url = url
     }
- //i was not using this file bindWaitForConnectionUpdate, it was a dummy
- // ohh, yeah it was all from outube.
+    //i was not using this file bindWaitForConnectionUpdate, it was a dummy
+    // ohh, yeah it was all from outube.
     validate = async () => ytdl.validateURL(this.url)
 
-
     getInfo = async () => await ytdl.getInfo(this.url)
-
-
 
     download = async (quality = 'medium') => {
         if (this.type === 'audio' || quality === 'medium') {

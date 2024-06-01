@@ -28,39 +28,64 @@ export default class extends BaseCommand {
 
         if (!artist) return void (await M.reply('Please provide an artist name.'))
 
-
-          
         try {
             const { name: artistName, url } = await this.client.lastfm.artist.getInfo({ artist })
 
-            const data = (await Promise.allSettled((await this.client.database.User.find({
-                jid: { $in: M.group!.participants.map((p) => p) },
-                lastfm: { $ne: null }
-            }).lean()).map(async (u) => {
-                const { stats } = await this.client.lastfm.artist.getInfo({ artist }, {
-                    username: u.lastfm, sk: u.lastfm
+            const data = (
+                await Promise.allSettled(
+                    (
+                        await this.client.database.User.find({
+                            jid: { $in: M.group!.participants.map((p) => p) },
+                            lastfm: { $ne: null }
+                        }).lean()
+                    ).map(async (u) => {
+                        const { stats } = await this.client.lastfm.artist.getInfo(
+                            { artist },
+                            {
+                                username: u.lastfm,
+                                sk: u.lastfm
+                            }
+                        )
+                        const { name: username } = await this.client.lastfm.user.getInfo({ user: u.lastfm })
+                        return { username, plays: stats.userplaycount, jid: u.jid }
+                    })
+                )
+            )
+                .sort((a, b) => {
+                    if (a.status === 'fulfilled' && b.status === 'fulfilled') {
+                        return (b.value as any).plays - (a.value as any).plays
+                    }
+                    return 0
                 })
-                const { name: username } = await this.client.lastfm.user.getInfo({ user: u.lastfm })
-                return { username, plays: stats.userplaycount, jid: u.jid }
-            }))).sort((a, b) => {
-                if (a.status === 'fulfilled' && b.status === 'fulfilled') {
-                    return (b.value as any).plays - (a.value as any).plays
-                }
-                return 0
-            }).map((r) => r.status === 'fulfilled' ? {
-                ...r.value,
-                waname: this.client.getContact(r.value.jid).username ?? ''
-            } : null).filter((r): r  is { username: string, plays: number, jid: string, waname: string } => r !== null)
-            await M.reply(stripIndents`
+                .map((r) =>
+                    r.status === 'fulfilled'
+                        ? {
+                              ...r.value,
+                              waname: this.client.getContact(r.value.jid).username ?? ''
+                          }
+                        : null
+                )
+                .filter((r): r is { username: string; plays: number; jid: string; waname: string } => r !== null)
+            await M.reply(
+                stripIndents`
                 *${artistName}* in ${M.group!.title}
 
-                ${data.map((d, i) => `${i + 1}. ${d.username} ${!d.waname || (d.waname === 'User' )? '' : `(${d?.waname})`}- ${d.plays} plays`).join('\n')}
+                ${data
+                    .map(
+                        (d, i) =>
+                            `${i + 1}. ${d.username} ${!d.waname || d.waname === 'User' ? '' : `(${d?.waname})`}- ${
+                                d.plays
+                            } plays`
+                    )
+                    .join('\n')}
 
             
                 ${url}
-            `, 'text', undefined, undefined)
-
-        
+            `,
+                'text',
+                undefined,
+                undefined
+            )
         } catch (e) {
             console.log(e)
             return void (await M.reply(`Couldn't find the artist`))

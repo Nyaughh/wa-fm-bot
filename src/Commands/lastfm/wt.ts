@@ -23,48 +23,78 @@ export default class extends BaseCommand {
             return { trackName: name, artistName: artist.name }
         })()
 
-        if (!currentTrack.trackName || !currentTrack.artistName) return void (await M.reply('No track is currently playing.'))
+        if (!currentTrack.trackName || !currentTrack.artistName)
+            return void (await M.reply('No track is currently playing.'))
 
         try {
-            const { name: trackName, artist: { name: artistName }, url } = await this.client.lastfm.track.getInfo({
+            const {
+                name: trackName,
+                artist: { name: artistName },
+                url
+            } = await this.client.lastfm.track.getInfo({
                 artist: currentTrack.artistName,
                 track: currentTrack.trackName
             })
 
-            const participants = M.group!.participants.map((p) => p);
+            const participants = M.group!.participants.map((p) => p)
             const users = await this.client.database.User.find({
                 jid: { $in: participants },
                 lastfm: { $ne: null }
-            }).lean();
+            }).lean()
 
-            const data = (await Promise.allSettled(users.map(async (u) => {
-                const trackInfo = await this.client.lastfm.track.getInfo({
-                    artist: currentTrack.artistName,
-                    track: currentTrack.trackName
-                }, { username: u.lastfm, sk: u.lastfm });
-                const { name: username } = await this.client.lastfm.user.getInfo({ user: u.lastfm });
-                return { username, plays: trackInfo.userplaycount, jid: u.jid };
-            }))).sort((a, b) => {
-                if (a.status === 'fulfilled' && b.status === 'fulfilled') {
-                    return (b.value as any).plays - (a.value as any).plays;
-                }
-                return 0;
-            }).map((r) => r.status === 'fulfilled' ? {
-                ...r.value,
-                waname: this.client.getContact(r.value.jid).username ?? ''
-            } : null).filter((r): r is { username: string, plays: number, jid: string, waname: string } => r !== null);
+            const data = (
+                await Promise.allSettled(
+                    users.map(async (u) => {
+                        const trackInfo = await this.client.lastfm.track.getInfo(
+                            {
+                                artist: currentTrack.artistName,
+                                track: currentTrack.trackName
+                            },
+                            { username: u.lastfm, sk: u.lastfm }
+                        )
+                        const { name: username } = await this.client.lastfm.user.getInfo({ user: u.lastfm })
+                        return { username, plays: trackInfo.userplaycount, jid: u.jid }
+                    })
+                )
+            )
+                .sort((a, b) => {
+                    if (a.status === 'fulfilled' && b.status === 'fulfilled') {
+                        return (b.value as any).plays - (a.value as any).plays
+                    }
+                    return 0
+                })
+                .map((r) =>
+                    r.status === 'fulfilled'
+                        ? {
+                              ...r.value,
+                              waname: this.client.getContact(r.value.jid).username ?? ''
+                          }
+                        : null
+                )
+                .filter((r): r is { username: string; plays: number; jid: string; waname: string } => r !== null)
 
-            await M.reply(stripIndents`
+            await M.reply(
+                stripIndents`
                 *${trackName}* by *${artistName}* in ${M.group!.title}
 
-                ${data.map((d, i) => `${i + 1}. ${d.username} ${!d.waname || (d.waname === 'user') ? '' : `(${d.waname})`}- ${d.plays} plays`).join('\n')}
+                ${data
+                    .map(
+                        (d, i) =>
+                            `${i + 1}. ${d.username} ${!d.waname || d.waname === 'user' ? '' : `(${d.waname})`}- ${
+                                d.plays
+                            } plays`
+                    )
+                    .join('\n')}
 
                 ${url}
-            `, 'text', undefined, undefined);
-
+            `,
+                'text',
+                undefined,
+                undefined
+            )
         } catch (e) {
-            console.log(e);
-            return void (await M.reply(`Couldn't find the track`));
+            console.log(e)
+            return void (await M.reply(`Couldn't find the track`))
         }
     }
 }

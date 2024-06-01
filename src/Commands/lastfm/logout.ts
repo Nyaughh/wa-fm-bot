@@ -11,14 +11,10 @@ import Message from '../../Structures/Message'
     }
 })
 export default class extends BaseCommand {
-
-
     override execute = async (M: Message): Promise<void> => {
         const user = await this.client.database.User.findOne({ jid: M.sender.jid }).lean()
         if (!user?.lastfm) return void (await M.reply(`You're not logged in.`))
         await M.reply(`Successfully logged out.`)
         await this.client.database.User.updateOne({ jid: M.sender.jid }, { lastfm: null })
-
     }
 }
-
