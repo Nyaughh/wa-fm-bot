@@ -38,7 +38,7 @@ export default class extends BaseCommand {
             const video = await searchTrackOnYouTube(mostRecentTrack.name, mostRecentTrack.artist.name)
 
             if (!video.id || !video.id.videoId) {
-                throw new Error('Video ID is undefined')
+                return void (await M.reply(`No YouTube link found for this track`))
             }
 
             const data = await this.client.lastfm.user.getInfo(user)
