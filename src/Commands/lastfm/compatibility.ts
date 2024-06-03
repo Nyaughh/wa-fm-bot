@@ -8,7 +8,7 @@ import { stripIndents } from 'common-tags'
     aliases: ['fmcompat', 'comp'],
     category: 'LastFM',
     description: {
-        content: 'Check the LastFM compatibility between two users based on known artists'
+        content: 'Check the LastFM compatibility between two users based on known artists and tracks.'
     }
 })
 export default class extends BaseCommand {
@@ -52,42 +52,59 @@ export default class extends BaseCommand {
             ]);
 
             const [user1TopArtists, user2TopArtists] = await Promise.all([
-                this.client.lastfm.user.getTopArtists({ user: user1, limit: 100 }),
-                this.client.lastfm.user.getTopArtists({ user: user2, limit: 100 })
+                this.client.lastfm.user.getTopArtists({ user: user1, limit: 200 }),
+                this.client.lastfm.user.getTopArtists({ user: user2, limit: 200 })
             ]);
 
-            const knownArtistThreshold = 10; // Adjust as needed
-            const user1KnownArtists = user1TopArtists.artists.filter(artist => artist.playcount > knownArtistThreshold);
-            const user2KnownArtists = user2TopArtists.artists.filter(artist => artist.playcount > knownArtistThreshold);
+            const [user1Songs, user2Songs] = await Promise.all([
+                this.client.lastfm.user.getTopTracks({ user: user1, limit: 100 }),
+                this.client.lastfm.user.getTopTracks({ user: user2, limit: 100 })
+            ]);
 
-            const commonArtists = user1KnownArtists.filter(artist1 =>
-                user2KnownArtists.some(artist2 => artist1.name === artist2.name)
-            );
+            let score = 0;
 
-            const compatibilityScore = Math.min(commonArtists.length, 10) * 10; // Max score: 100
+            const user1Artists = user1TopArtists.artists.map(artist => artist.name);
+            const user2Artists = user2TopArtists.artists.map(artist => artist.name);
+            const commonArtists = user1Artists.filter(artist => user2Artists.includes(artist));
 
-            let compatibilityRating = '';
-            if (compatibilityScore >= 80) {
-                compatibilityRating = 'Outstanding';
-            } else if (compatibilityScore >= 60) {
-                compatibilityRating = 'Super';
-            } else if (compatibilityScore >= 40) {
-                compatibilityRating = 'Good';
-            } else {
-                compatibilityRating = 'Fair';
-            }
+            const user1ArtistScore = (commonArtists.length / user1Artists.length) * 50;
+            const user2ArtistScore = (commonArtists.length / user2Artists.length) * 50;
 
-            await M.reply(
-                stripIndents`
-                    Compatibility between ${user1Info.name} and ${user2Info.name} based on known artists:
-                    Compatibility score: ${compatibilityScore}%
-                    Rating: ${compatibilityRating}
-                    Common known artists: ${commonArtists.map(artist => artist.name).join(', ') || 'None'}
-                `
-            );
+            score += (user1ArtistScore + user2ArtistScore) / 2;
+
+            const user1SongsList = user1Songs.tracks.map(track => track.name);
+            const user2SongsList = user2Songs.tracks.map(track => track.name);
+
+            const commonSongs = user1SongsList.filter(song => user2SongsList.includes(song));
+
+            const user1SongScore = (commonSongs.length / user1SongsList.length) * 50;
+            const user2SongScore = (commonSongs.length / user2SongsList.length) * 50;
+
+            score += (user1SongScore + user2SongScore) / 2;
+
+            const compatibility = Math.round(score);
+
+            await M.reply(stripIndents`
+                *Compatibility between ${user1Info.name} and ${user2Info.name}*
+
+                Score: ${compatibility}% (${this.getCompatibility(compatibility)})
+                
+                *Common Artists:* ${commonArtists.slice(0, 10).join(', ')} (and ${commonArtists.length - 10} more)
+
+                *Common Songs:* ${commonSongs.slice(0, 10).join(', ')} (and ${commonSongs.length - 10} more)
+            `);
+
         } catch (e) {
             console.log(e);
-            return void (await M.reply(`Couldn't fetch compatibility information.`));
+            return void (await M.reply(`Couldn't fetch compatibility information. Please try again later.`));
         }
+    }
+
+    private getCompatibility = (percentage: number): string => {
+        if (percentage >= 90) return 'Outstanding'
+        if (percentage >= 70) return 'Excellent'
+        if (percentage >= 50) return 'Good'
+        if (percentage >= 30) return 'Fair'
+        return 'Low'
     }
 }

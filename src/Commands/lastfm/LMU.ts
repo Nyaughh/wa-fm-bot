@@ -6,7 +6,7 @@ import { stripIndents } from 'common-tags'
 import axios from 'axios'
 
 @Command('lfu', {
-    aliases: ['lastfmuser'],
+    aliases: ['lastfmuser', 'fmu'],
     category: 'LastFM',
     description: {
         content: 'LastFM User Info'
@@ -58,7 +58,9 @@ export default class extends BaseCommand {
                 Average Scrobbles per Track: ${averageScrobblesPerTrack}
                 Average Scrobbles per Artist: ${averageScrobblesPerArtist}
                 Average Scrobbles per Album: ${averageScrobblesPerAlbum}
-                Current Obsession: ${obsession.tracks[0].name} by ${obsession.tracks[0].artist.name}
+                ${
+                    obsession?.tracks?.[0]?.name ? 
+                    `Current Obsession: ${obsession.tracks[0].name} by ${obsession.tracks[0].artist.name}` : ''}
             `;
 
             if (image?.url) {
