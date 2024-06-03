@@ -32,6 +32,7 @@ export default class extends BaseCommand {
 
         try {
             const { tracks } = await this.client.lastfm.user.getRecentTracks({ user: user, limit: 1 })
+            if (!tracks.length) return void await M.reply(`No data found`)
 
             const mostRecentTrack = tracks[0]
 
