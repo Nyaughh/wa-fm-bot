@@ -5,7 +5,7 @@ import { IParsedArgs } from '../../typings/Command'
 import { stripIndents } from 'common-tags'
 
 @Command('whoknowscurrenttrack', {
-    aliases: ['wct'],
+    aliases: ['wct', 'wt'],
     category: 'LastFM',
     description: {
         content: 'Who knows the currently playing track in this group'
