@@ -37,7 +37,7 @@ export default class extends BaseCommand {
             const mostRecentTrack = tracks[0]
 
             const track = await searchTrack(mostRecentTrack.name, mostRecentTrack.artist.name)
-
+            if (!track) return void await M.reply(`No Spotify link found for this track`)
             const data = await this.client.lastfm.user.getInfo(user)
 
             await M.reply(

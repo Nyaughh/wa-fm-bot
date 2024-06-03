@@ -84,15 +84,21 @@ export default class extends BaseCommand {
 
             const compatibility = Math.round(score);
 
-            await M.reply(stripIndents`
+            let text = stripIndents`
                 *Compatibility between ${user1Info.name} and ${user2Info.name}*
 
-                Score: ${compatibility}% (${this.getCompatibility(compatibility)})
-                
-                *Common Artists:* ${commonArtists.slice(0, 10).join(', ')} (and ${commonArtists.length - 10} more)
+                *Score:* ${compatibility}% (${this.getCompatibility(compatibility)})
+            `
+            
+            if (commonArtists.length > 0) {
+                text += `\n\n*Common Artists:* ${commonArtists.slice(0, 5).join(', ')} ${commonArtists.length > 5 ? `(${commonArtists.length - 5} more)` : ''}\n`
+            }
 
-                *Common Songs:* ${commonSongs.slice(0, 10).join(', ')} (and ${commonSongs.length - 10} more)
-            `);
+            if (commonSongs.length > 0) {
+                text += `\n*Common Songs:* ${commonSongs.slice(0, 5).join(', ')} ${commonSongs.length > 5 ? `(${commonSongs.length - 5} more)` : ''}`
+            }
+
+            await M.reply(text);
 
         } catch (e) {
             console.log(e);
