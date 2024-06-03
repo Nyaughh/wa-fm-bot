@@ -62,7 +62,7 @@ export default class extends BaseCommand {
                         externalAdReply: {
                             title: mostRecentTrack.name,
                             body: mostRecentTrack.artist.name,
-                            mediaType: 2,
+                            mediaType: 1,
                             thumbnailUrl: image?.url ?? ''
                         }
                     },
