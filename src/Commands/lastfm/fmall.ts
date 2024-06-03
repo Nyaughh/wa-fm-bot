@@ -23,7 +23,7 @@ export default class extends BaseCommand {
         const data = await Promise.allSettled(users.map(async (u) => {
             const userInfo = await this.client.lastfm.user.getInfo({ user: u.lastfm });
             const { tracks } = await this.client.lastfm.user.getRecentTracks({ user: u.lastfm, limit: 1 });
-            if (!tracks.length) return
+            if (!tracks.length) return;
             const mostRecentTrack = tracks[0];
             const contact = this.client.getContact(u.jid);
             const waname = contact.username ?? '';
@@ -39,7 +39,8 @@ export default class extends BaseCommand {
         }));
 
         const filteredData = data
-            .filter((r): r is PromiseFulfilledResult<{ username: string, trackName: string, artistName: string, nowPlaying: boolean, jid: string, waname: string }> => r && r.status === 'fulfilled')
+            .filter((r): r is PromiseFulfilledResult<{ username: string, trackName: string, artistName: string, nowPlaying: boolean, jid: string, waname: string }| undefined> => r.status === 'fulfilled')
+            .filter((r): r is PromiseFulfilledResult<{ username: string, trackName: string, artistName: string, nowPlaying: boolean, jid: string, waname: string }> => r.value !== undefined)
             .map((r) => r.value)
             .filter((r) => r.trackName && r.artistName);
 
