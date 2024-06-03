@@ -31,21 +31,38 @@ export default class extends BaseCommand {
         }
 
         try {
-            const data = await this.client.lastfm.user.getInfo(user)
-            const recent = await this.client.lastfm.user.getRecentTracks({ user: user, limit: 1 })
-            const weekly = await this.client.lastfm.user.getWeeklyArtistChart({ user: user, limit: 5 })
-            const obsession = await this.client.lastfm.user.getWeeklyTrackChart({ user: user, limit: 1 })
+            const [userData, recent, weekly, obsession] = await Promise.all([
+                this.client.lastfm.user.getInfo(user),
+                this.client.lastfm.user.getRecentTracks({ user: user, limit: 1 }),
+                this.client.lastfm.user.getWeeklyArtistChart({ user: user, limit: 5 }),
+                this.client.lastfm.user.getWeeklyTrackChart({ user: user, limit: 1 })
+            ]);
 
-            const image = data.image.find((i) => i.size === 'large') || data.image.find((i) => i.size === 'extralarge')
+            const image = userData.image.find((i) => i.size === 'large') || userData.image.find((i) => i.size === 'extralarge')
+
+            const totalScrobbles = userData.playcount;
+            const totalTracks = userData.trackCount;
+            const totalArtists = userData.artistCount;
+            const totalAlbums = userData.albumCount;
+
+            const averageScrobblesPerTrack = totalTracks ? Math.round(totalScrobbles / totalTracks) : 0;
+            const averageScrobblesPerArtist = totalArtists ? Math.round(totalScrobbles / totalArtists) : 0;
+            const averageScrobblesPerAlbum = totalAlbums ? Math.round(totalScrobbles / totalAlbums) : 0;
 
             const text = stripIndents`
-                    Username: ${data.name}
-                    Playcount: ${data.playcount}
-                    Current Obsession: ${obsession.tracks[0].name} by ${obsession.tracks[0].artist.name}
-            `
+                Username: ${userData.name}
+                Total Scrobbles: ${totalScrobbles}
+                Total Tracks: ${totalTracks}
+                Total Artists: ${totalArtists}
+                Total Albums: ${totalAlbums}
+                Average Scrobbles per Track: ${averageScrobblesPerTrack}
+                Average Scrobbles per Artist: ${averageScrobblesPerArtist}
+                Average Scrobbles per Album: ${averageScrobblesPerAlbum}
+                Current Obsession: ${obsession.tracks[0].name} by ${obsession.tracks[0].artist.name}
+            `;
+
             if (image?.url) {
                 const imageData = await axios.get(image.url, { responseType: 'arraybuffer' })
-                console.log(imageData)
                 if (imageData.request.res.responseUrl.includes('.gif')) {
                     return void (await M.replyRaw({
                         video: await this.client.util.convertGIFToMP4(imageData.data),
