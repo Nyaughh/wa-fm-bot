@@ -45,9 +45,8 @@ export default class extends BaseCommand {
                             title: data.videoDetails.title,
                             body: data.videoDetails.description,
                             mediaType: 2,
-                            thumbnailUrl: image
-                            
-
+                            thumbnailUrl: image,
+                            mediaUrl: videoUrl
                         }
                     },
                     footer: 'Powered by YouTube'
