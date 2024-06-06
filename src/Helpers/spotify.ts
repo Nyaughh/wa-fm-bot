@@ -6,11 +6,13 @@ const sdk = SpotifyApi.withClientCredentials(
 )
 
 export const searchTrack = async (track: string, artist: string) => {
+    console.log(`Searching for track: ${track}, artist: ${artist}`)
     try {
         console.log(`Searching for track: ${track}, artist: ${artist}`)
         const searchQuery = artist ? `track:${track} artist:${artist}` : `track:${track}`
+        console.log(`Searching Spotify for: ${searchQuery}`)
         const search = await sdk.search(searchQuery, ['track'])
-
+        
         if (search.tracks.items.length > 0) {
             console.log(`Spotify search results: ${JSON.stringify(search.tracks.items[0])}`)
             return search.tracks.items[0]
