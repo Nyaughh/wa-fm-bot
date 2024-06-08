@@ -8,7 +8,9 @@ import { fetchLatestBaileysVersion } from '@whiskeysockets/baileys'
 import Message from './Structures/Message'
 import { EventHandler } from './Handlers/EventHandler'
 import { AuthenticationFromDatabase } from './Structures/Authentication'
-;(async () => {
+;import { updateProfilePicture } from './jobs/pfp'
+import cron from 'node-cron'
+(async () => {
     if (!process.env.MONGO_URI) {
         console.error('No MONGO_URI found!')
         process.exit(1)
@@ -66,4 +68,10 @@ import { AuthenticationFromDatabase } from './Structures/Authentication'
     client.log('<- Mods ->')
     client.config.mods.forEach((m) => client.log('❯', client.getContact(m).username))
     client.log('> Bans:', client.banned.size)
+
+    cron.schedule('*/30 * * * *', () => {
+        console.log('Running profile picture update task...')
+        updateProfilePicture(client).catch(console.error)
+})
+
 })()
