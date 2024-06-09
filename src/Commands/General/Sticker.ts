@@ -6,7 +6,7 @@ import { IParsedArgs } from '../../typings/Command'
 
 @Command('sticker', {
     aliases: ['s'],
-    category: 'Utils',
+    category: 'General',
     description: {
         content: 'Convert Images/Videos into Stickers'
     },

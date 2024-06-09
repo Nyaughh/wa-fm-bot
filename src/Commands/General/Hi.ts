@@ -4,7 +4,7 @@ import Message from '../../Structures/Message'
 
 @Command('hi', {
     aliases: ['hello'],
-    category: 'Core',
+    category: 'General',
     description: {
         content: 'Say hello to the bot.'
     }
