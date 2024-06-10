@@ -41,7 +41,6 @@ export default class extends BaseCommand {
 
             await M.reply(
                 stripIndents`
-                    ${data.name} ${tracks[0].nowplaying ? 'is now listening to' : 'last listened to'}:
                     https://open.spotify.com/track/${track.uri.replace('spotify:track:', '')}
                 `
             )
@@ -51,3 +50,6 @@ export default class extends BaseCommand {
         }
     }
 }
+
+  // ${data.name} ${tracks[0].nowplaying ? 'is now listening to' : 'last listened to'}:
+
