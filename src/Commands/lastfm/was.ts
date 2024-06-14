@@ -4,7 +4,7 @@ import Message from '../../Structures/Message'
 import { IParsedArgs } from '../../typings/Command'
 import { stripIndents } from 'common-tags'
 
-@Command('songbyartistwhoknows', {
+@Command('trackbyartistwhoknows', {
     aliases: ['was'],
     category: 'LastFM',
     description: {
@@ -34,21 +34,29 @@ export default class extends BaseCommand {
 
             const allTracks = await this.client.lastfm.artist.getTopTracks({ artist })
 
+            // Filter out tracks with 0 plays and retrieve play counts for each track
             const tracksWithPlays = await Promise.all(allTracks.tracks.map(async (track: any) => {
                 const trackInfo = await this.client.lastfm.track.getInfo({
                     artist: track.artist.name,
                     track: track.name,
                     username: user.lastfm
                 })
+                const plays = trackInfo.userplaycount ?? 0
                 return {
                     name: track.name,
-                    plays: trackInfo.userplaycount ?? 0
+                    plays: plays
                 }
             }))
 
+            // Sort tracks by number of plays in descending order
+            tracksWithPlays.sort((a, b) => b.plays - a.plays)
+
             const { name: username } = await this.client.lastfm.user.getInfo({ user: user.lastfm })
 
-            const songList = tracksWithPlays.map((t: any, index: number) => `${index + 1}. ${t.name} - ${t.plays} plays`).join('\n')
+            const songList = tracksWithPlays
+                .filter((track) => track.plays > 0) // Remove tracks with 0 plays
+                .map((track, index) => `${index + 1}. ${track.name} - ${track.plays} plays`)
+                .join('\n')
 
             await M.reply(stripIndents`
                 *${artistName}* songs known by ${username}:
@@ -59,7 +67,7 @@ export default class extends BaseCommand {
             `, 'text', undefined, undefined)
 
         } catch (e) {
-            console.log(e)
+            console.error(e)
             return void (await M.reply(`Couldn't find the artist or fetch the data`))
         }
     }
