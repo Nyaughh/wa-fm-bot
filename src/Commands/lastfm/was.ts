@@ -50,10 +50,13 @@ export default class extends BaseCommand {
             // Sort tracks by number of plays in descending order
             tracksWithPlays.sort((a, b) => b.plays - a.plays)
 
+            // Filter tracks with 0 plays and calculate total plays
+            const filteredTracks = tracksWithPlays.filter((track) => track.plays > 0)
+            const totalPlays = filteredTracks.reduce((sum, track) => sum + track.plays, 0)
+
             const { name: username } = await this.client.lastfm.user.getInfo({ user: user.lastfm })
 
-            const songList = tracksWithPlays
-                .filter((track) => track.plays > 0) // Remove tracks with 0 plays
+            const songList = filteredTracks
                 .map((track, index) => `${index + 1}. ${track.name} - ${track.plays} plays`)
                 .join('\n')
 
@@ -61,6 +64,8 @@ export default class extends BaseCommand {
                 *${artistName}* songs known by ${username}:
 
                 ${songList.length > 0 ? songList : 'No songs known'}
+
+                Total Plays: ${totalPlays}
 
                 ${url}
             `, 'text', undefined, undefined)
