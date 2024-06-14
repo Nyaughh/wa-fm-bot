@@ -4,8 +4,8 @@ import Message from '../../Structures/Message'
 import { IParsedArgs } from '../../typings/Command'
 import { stripIndents } from 'common-tags'
 
-@Command('ujhgfvuyfvutgcvgcfxcvhbyfy', {
-    aliases: ['was'],
+@Command('whoknows', {
+    aliases: ['w'],
     category: 'LastFM',
     description: {
         content: 'Shows all songs known by a specific user from a specific artist'
@@ -32,14 +32,23 @@ export default class extends BaseCommand {
         try {
             const { name: artistName, url } = await this.client.lastfm.artist.getInfo({ artist })
 
-            const topTracks = await this.client.lastfm.user.getTopTracks({
-                user: user.lastfm,
-                limit: 100  // Adjust the limit as needed
-            })
+            const allTracks = await this.client.lastfm.artist.getTopTracks({ artist })
+
+            const tracksWithPlays = await Promise.all(allTracks.tracks.map(async (track: any) => {
+                const trackInfo = await this.client.lastfm.track.getInfo({
+                    artist: track.artist.name,
+                    track: track.name,
+                    username: user.lastfm
+                })
+                return {
+                    name: track.name,
+                    plays: trackInfo.userplaycount ?? 0
+                }
+            }))
+
             const { name: username } = await this.client.lastfm.user.getInfo({ user: user.lastfm })
 
-            const artistTracks = topTracks.tracks.filter((t: any) => t.artist.name.toLowerCase() === artist.toLowerCase())
-            const songList = artistTracks.map((t: any) => t.name).join('\n')
+            const songList = tracksWithPlays.map((t: any, index: number) => `${index + 1}. ${t.name} - ${t.plays} plays`).join('\n')
 
             await M.reply(stripIndents`
                 *${artistName}* songs known by ${username}:
