@@ -4,8 +4,8 @@ import Message from '../../Structures/Message'
 import { IParsedArgs } from '../../typings/Command'
 import { stripIndents } from 'common-tags'
 
-@Command('whoknows', {
-    aliases: ['w'],
+@Command('songbyartistwhoknows', {
+    aliases: ['was'],
     category: 'LastFM',
     description: {
         content: 'Shows all songs known by a specific user from a specific artist'
