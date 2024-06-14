@@ -4,8 +4,8 @@ import Message from '../../Structures/Message'
 import { IParsedArgs } from '../../typings/Command'
 import { stripIndents } from 'common-tags'
 
-@Command('trackbyartistwhoknows', {
-    aliases: ['was'],
+@Command('whoknows', {
+    aliases: ['w'],
     category: 'LastFM',
     description: {
         content: 'Shows all songs known by a specific user from a specific artist'
@@ -34,17 +34,16 @@ export default class extends BaseCommand {
 
             const allTracks = await this.client.lastfm.artist.getTopTracks({ artist })
 
-            // Filter out tracks with 0 plays and retrieve play counts for each track
+            // Fetch detailed track info including play counts for the user
             const tracksWithPlays = await Promise.all(allTracks.tracks.map(async (track: any) => {
                 const trackInfo = await this.client.lastfm.track.getInfo({
                     artist: track.artist.name,
                     track: track.name,
                     username: user.lastfm
                 })
-                const plays = trackInfo.userplaycount ?? 0
                 return {
                     name: track.name,
-                    plays: plays
+                    plays: trackInfo.userplaycount ?? 0
                 }
             }))
 
