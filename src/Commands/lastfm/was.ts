@@ -43,7 +43,7 @@ export default class extends BaseCommand {
 
                 *Total*: ${tracks.reduce((acc, track) => acc + track.playcount, 0)} plays
 
-                ${tracks.map((track, i) => `• ${i + 1}. ${track.name} ${track.playcount} plays`).join('\n')}
+                ${tracks.map((track, i) => `${i + 1}. ${track.name} ${track.playcount} plays`).join('\n')}
 
                 ${url}
             `)
