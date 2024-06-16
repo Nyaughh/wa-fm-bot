@@ -31,44 +31,24 @@ export default class extends BaseCommand {
 
         try {
             const { name: artistName, url } = await this.client.lastfm.artist.getInfo({ artist })
+            const { name } = await this.client.lastfm.user.getInfo({ user: user.lastfm })
+            const userTracks = await this.client.lastfm.user.getTopTracks({ user: user.lastfm, limit: 1000 })
 
-            const allTracks = await this.client.lastfm.artist.getTopTracks({ artist })
+            const tracks = userTracks.tracks.filter(track => track.artist.name === artistName).sort((a, b) => b.playcount - a.playcount)
 
-            // Fetch detailed track info including play counts for the user
-            const tracksWithPlays = await Promise.all(allTracks.tracks.map(async (track: any) => {
-                const trackInfo = await this.client.lastfm.track.getInfo({
-                    artist: track.artist.name,
-                    track: track.name,
-                    username: user.lastfm
-                })
-                return {
-                    name: track.name,
-                    plays: trackInfo.userplaycount ?? 0
-                }
-            }))
-
-            // Sort tracks by number of plays in descending order
-            tracksWithPlays.sort((a, b) => b.plays - a.plays)
-
-            // Filter tracks with 0 plays and calculate total plays
-            const filteredTracks = tracksWithPlays.filter((track) => track.plays > 0)
-            const totalPlays = filteredTracks.reduce((sum, track) => sum + track.plays, 0)
-
-            const { name: username } = await this.client.lastfm.user.getInfo({ user: user.lastfm })
-
-            const songList = filteredTracks
-                .map((track, index) => `${index + 1}. ${track.name} - ${track.plays} plays`)
-                .join('\n')
-
+            if (!tracks.length) return void (await M.reply(`You haven't listened to any songs by ${artistName}`))
+               
             await M.reply(stripIndents`
-                *${artistName}* songs known by ${username}:
+                *${artistName}* songs known by *${name}*
 
-                ${songList.length > 0 ? songList : 'No songs known'}
+                *Total*: ${tracks.reduce((acc, track) => acc + track.playcount, 0)} plays
 
-                Total Plays: ${totalPlays}
+                ${tracks.map((track, i) => `• ${i + 1}. ${track.name} ${track.playcount} plays`).join('\n')}
 
                 ${url}
-            `, 'text', undefined, undefined)
+            `)
+            
+
 
         } catch (e) {
             console.error(e)
