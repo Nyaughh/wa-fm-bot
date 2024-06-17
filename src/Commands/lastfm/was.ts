@@ -39,7 +39,7 @@ export default class extends BaseCommand {
             if (!tracks.length) return void (await M.reply(`You haven't listened to any songs by ${artistName}`))
                
             await M.reply(stripIndents`
-                *${artistName}* songs known by *${name}*
+                *${artistName}* songs known by *${name}*:
 
                 *Total*: ${tracks.reduce((acc, track) => acc + track.playcount, 0)} plays
 
