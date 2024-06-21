@@ -7,7 +7,7 @@ import Utils from './Utils'
 
 const youtube = google.youtube({
     version: 'v3',
-    auth: 'AIzaSyCRDP9iB0qgo88uki42KD9_CaXu1_sPih4'
+    auth: process.env.YOUTUBE_API_KEY
 })
 
 export const searchTrackOnYouTube = async (track: string, artist?: string) => {
