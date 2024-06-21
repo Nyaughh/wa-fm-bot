@@ -1,4 +1,4 @@
-```markdown
+
 # WhatsApp Last.fm Song Tracking Bot
 
 ![WhatsApp Last.fm Bot](https://example.com/logo.png)
@@ -151,14 +151,4 @@ Or through any of the following platforms:
 - [Last.fm API](https://www.last.fm/api) - For song tracking and information.
 - [Spotify Web API](https://developer.spotify.com/documentation/web-api/) - For Spotify song links.
 - [YouTube Data API](https://developers.google.com/youtube/v3) - For YouTube song links.
-```
 
-### Instructions for Use:
-1. **Update Project Name and Logo**: Replace "WhatsApp Last.fm Song Tracking Bot" and the logo URL with your actual project name and logo URL.
-2. **Badges**: Update badge URLs with your actual project’s status and links.
-3. **API Keys**: Ensure instructions for setting up API keys are clear and accurate.
-4. **Commands**: Add or adjust any bot commands based on your implementation.
-5. **Contributing**: Link to your `CONTRIBUTING.md` and describe how others can contribute.
-6. **License**: Ensure the license badge and link match your project’s license.
-7. **Support**: Include ways users can support your project.
-8. **Acknowledgements**: Credit any libraries, tools, or individuals who contributed.
