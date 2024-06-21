@@ -1,23 +1,13 @@
-
 # WhatsApp Last.fm Song Tracking Bot
-
-![WhatsApp Last.fm Bot](https://example.com/logo.png)
-
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Build Status](https://img.shields.io/travis/username/repo.svg)](https://travis-ci.org/username/repo)
-[![GitHub Issues](https://img.shields.io/github/issues/username/repo.svg)](https://github.com/username/repo/issues)
-[![Contributors](https://img.shields.io/github/contributors/username/repo.svg)](https://github.com/username/repo/graphs/contributors)
 
 ## Table of Contents
 
-- [Introduction](#introduction)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-- [Support](#support)
-- [Acknowledgements](#acknowledgements)
+-   [Introduction](#introduction)
+-   [Features](#features)
+-   [Installation](#installation)
+-   [Usage](#usage)
+-   [Support](#support)
+-   [Acknowledgements](#acknowledgements)
 
 ## Introduction
 
@@ -25,30 +15,30 @@ The WhatsApp Last.fm Song Tracking Bot is a TypeScript-based bot that allows use
 
 ## Features
 
-- Track currently playing song
-- Get recent tracks
-- Display top artists
-- Integration with Last.fm API
-- Simple WhatsApp commands
-- Support for Spotify and YouTube links
+-   Track currently playing song
+-   Get recent tracks
+-   Display top artists
+-   Integration with Last.fm API
+-   Simple WhatsApp commands
+-   Support for Spotify and YouTube links
 
 ## Installation
 
 ### Prerequisites
 
-- Node.js v14 or higher
-- npm or yarn
-- MongoDB
-- A Last.fm API key
-- A Spotify API key and secret
-- A YouTube API key
-- A WhatsApp account
+-   Node.js v14 or higher
+-   npm or yarn
+-   MongoDB
+-   A Last.fm API key
+-   A Spotify API key and secret
+-   A YouTube API key
+-   A WhatsApp account
 
 ### Steps
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/username/repo.git
+    git clone https://github.com/Nyaughh/wa-fm-bot
     ```
 2. Change to the project directory:
     ```bash
@@ -87,68 +77,60 @@ The WhatsApp Last.fm Song Tracking Bot is a TypeScript-based bot that allows use
 Once the bot is running, you can interact with it through WhatsApp using the following commands:
 
 ### General Commands
-- `!help` - Display the help message with a list of all commands.
-- `!hi` - Greet the bot.
-- `!sponsor` - Get information about sponsoring the bot.
-- `!sticker` - Request a sticker.
+
+-   `!help` - Display the help message with a list of all commands.
+-   `!hi` - Greet the bot.
+-   `!sponsor` - Get information about sponsoring the bot.
 
 ### LastFM Commands
-- `!lfu` - Link your Last.fm username.
-- `!login` - Log in to your Last.fm account.
-- `!play` - Get the currently playing track.
-- `!artist [artist name]` - Get information about a specific artist.
-- `!fmcompat [user1] [user2]` - Check compatibility between two users.
-- `!fm` - Get your Last.fm profile information.
-- `!fma` - Get your Last.fm profile information in a different format.
-- `!fmall` - Get a detailed summary of your Last.fm account.
-- `!fmp3` - Get your top 3 tracks.
-- `!fmspotify` - Get your top Spotify tracks.
-- `!grid` - Generate a grid of your top artists.
-- `!logout` - Log out from your Last.fm account.
-- `!members` - Get a list of group members.
-- `!recents` - Get your recent tracks.
-- `!time` - Get the amount of time spent listening.
-- `!wac` - Get your weekly artist chart.
-- `!whoknowsas [artist name]` - Get the top listeners for a specific artist.
-- `!whoknows [track name]` - Get the top listeners for a specific track.
-- `!whoknowscurrenttrack` - Get the top listeners for the currently playing track.
+
+-   `!lfu` - Last.fm account details.
+-   `!login` - Log in to your Last.fm account.
+-   `!play` - Play any song by the name and get the youtube url with an mp3 file.
+-   `!artist [artist name]` - Get information about a specific artist.
+-   `!fma` - Get a youtube URL of your current song.
+-   `!fmall` - Get the list of all the users with their current and last listened songs.
+-   `!fmp3` - Get your top 3 tracks.
+-   `!fmspotify` - Get your top Spotify tracks.
+-   `!grid` - Generate a grid of your top albums.
+-   `!logout` - Log out from your Last.fm account.
+-   `!members` - Get a list of group members logged in.
+-   `!recents` - Get your recent tracks.
+-   `!time` - Get the amount of time spent listening.
+-   `!wac` - Get your weekly album chart.
+-   `!whoknowsas [artist name]` - Get the top listeners for a specific artist.
+-   `!whoknows [artist]` - Get the top listeners for a specific artist.
+-   `!whoknowscurrenttrack` - Get the top listeners for the currently playing track.
 
 Example usage:
+
 ```text
-User: !play
-Bot: You are currently listening to "Song Title" by "Artist Name".
+User: !fms
+Bot: "User" is currently listening to: "Spotify Song URL".
 ```
 
-## Contributing
+<!-- ## Contributing
 
-Contributions are welcome! Please read the [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started.
+Contributions are welcome! Please read the [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to get started. -->
 
 ### Issues
 
-If you find a bug or have a feature request, please open an issue [here](https://github.com/username/repo/issues).
+If you find a bug or have a feature request, please open an issue [here](https://github.com/Nyaughh/wa-fm-bot/issues).
 
-## License
+<!-- ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details. -->
 
 ## Support
 
 If you like this project, consider supporting us. Here are some ways you can help:
 
-- Starring the repository
-- [Donating](https://example.com/donate) via our custom link
-
-Or through any of the following platforms:
-
-- [GitHub Sponsors](https://github.com/sponsors/username)
-- [Patreon](https://patreon.com/username)
-- [Open Collective](https://opencollective.com/username)
-- [Ko-fi](https://ko-fi.com/username)
+-   Starring the repository
+-   [GitHub Sponsors](https://github.com/sponsors/Nyaughh)
 
 ## Acknowledgements
 
-- [WhatsApp Web.js](https://github.com/pedroslopez/whatsapp-web.js) - For WhatsApp integration.
-- [Last.fm API](https://www.last.fm/api) - For song tracking and information.
-- [Spotify Web API](https://developer.spotify.com/documentation/web-api/) - For Spotify song links.
-- [YouTube Data API](https://developers.google.com/youtube/v3) - For YouTube song links.
-
+-   [WhatsApp Web.js](https://github.com/pedroslopez/whatsapp-web.js) - For WhatsApp integration.
+-   [Last.fm API](https://www.last.fm/api) - For song tracking and information.
+-   [Spotify Web API](https://developer.spotify.com/documentation/web-api/) - For Spotify song links.
+-   [YouTube Data API](https://developers.google.com/youtube/v3) - For YouTube song links.
