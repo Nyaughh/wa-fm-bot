@@ -8,7 +8,19 @@ import { stripIndents } from 'common-tags'
     dm: true,
     category: 'LastFM',
     description: {
-        content: 'Login to your lastfm account.'
+        content: `Type /login in the DM to get started.
+
+Login process:
+
+- You'll be given a link asking you to authorise, when you use /login.
+- Make a last.fm account if you don't already have one, and authorise.
+- Once you're done authorising, write 'Finish'.
+- You should see a confirmation message saying 'Successfully logged in as username'
+
+Tracking Process:
+
+- If you use Spotify, connect your Spotify account by https://www.last.fm/settings/applications.
+- If you use YouTube, download Pano Scrobbler https://play.google.com/store/apps/details?id=com.arn.scrobble.`
     }
 })
 export default class extends BaseCommand {
