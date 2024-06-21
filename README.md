@@ -90,7 +90,7 @@ Once the bot is running, you can interact with it through WhatsApp using the fol
 -   `!artist [artist name]` - Get information about a specific artist.
 -   `!fma` - Get a youtube URL of your current song.
 -   `!fmall` - Get the list of all the users with their current and last listened songs.
--   `!fmp3` - Get your top 3 tracks.
+-   `!fmp3` - Get mp3 of your current song.
 -   `!fmspotify` - Get your top Spotify tracks.
 -   `!grid` - Generate a grid of your top albums.
 -   `!logout` - Log out from your Last.fm account.
