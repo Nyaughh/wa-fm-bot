@@ -90,7 +90,7 @@ Once the bot is running, you can interact with it through WhatsApp using the fol
 -   `!artist [artist name]` - Get information about a specific artist.
 -   `!fma` - Get a youtube URL of your current song.
 -   `!fmall` - Get the list of all the users with their current and last listened songs.
--   `!fmp3` - Get your top 3 tracks.
+-   `!fmp3` - Get mp3 of your current song.
 -   `!fmspotify` - Get your top Spotify tracks.
 -   `!grid` - Generate a grid of your top albums.
 -   `!logout` - Log out from your Last.fm account.
@@ -130,7 +130,8 @@ If you like this project, consider supporting us. Here are some ways you can hel
 
 ## Acknowledgements
 
--   [WhatsApp Web.js](https://github.com/pedroslopez/whatsapp-web.js) - For WhatsApp integration.
+-   [Baileys](https://github.com/whiskeysockets/baileys) - For the WhatsApp Web API.
 -   [Last.fm API](https://www.last.fm/api) - For song tracking and information.
+-   [LastFM-Typed](https://npmjs.com/package/lastfm-typed) - For Strongly typed Last.fm API SDK.
 -   [Spotify Web API](https://developer.spotify.com/documentation/web-api/) - For Spotify song links.
 -   [YouTube Data API](https://developers.google.com/youtube/v3) - For YouTube song links.
