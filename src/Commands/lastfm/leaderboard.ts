@@ -13,11 +13,11 @@ import { IParsedArgs } from '../../typings/Command'
 export default class extends BaseCommand {
     override execute = async (M: Message, {}: IParsedArgs): Promise<void> => {
         try {
-            const users = await this.client.database.User.find({
+            let users = await this.client.database.User.find({
                 jid: { $in: M.group!.participants.map((p) => p) },
                 lastfm: { $ne: null }
-            }).lean();
-
+            }).lean()
+            users = users.filter((user) => user.lastfm !== null);
             if (users.length === 0) {
                 await M.reply('No members are logged in.');
                 return;
@@ -25,11 +25,12 @@ export default class extends BaseCommand {
 
             let totalScrobbles = 0;
 
-            const memberList = await Promise.all(users.map(async user => {
+            const memberList = (await Promise.all(users.map(async user => {
                 const contact = this.client.getContact(user.jid);
                 const username = contact?.username ?? 'Unknown';
                 const lastfm = user.lastfm ?? 'Unknown';
-                const userInfo = await this.client.lastfm.user.getInfo({ user: lastfm });
+                const userInfo = await this.client.lastfm.user.getInfo({ user: lastfm }).catch(() => null);
+                if (!userInfo) return null
 
                 const playcount = userInfo.playcount ?? 0;
                 totalScrobbles += playcount;
@@ -39,7 +40,7 @@ export default class extends BaseCommand {
                     lastfm: userInfo.name,
                     playcount
                 };
-            }));
+            }))).filter((member) => member !== null) as { username: string, lastfm: string, playcount: number }[];
 
             // Sort members by playcount in descending order
             memberList.sort((a, b) => b.playcount - a.playcount);
