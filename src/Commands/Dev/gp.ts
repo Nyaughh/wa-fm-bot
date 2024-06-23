@@ -6,7 +6,7 @@ import { userUsage } from '../../Helpers/userUsage'
 
 @Command('giveusage', {
     aliases: ['grantusage'],
-    category: 'LastFM',
+    category: 'Dev',
     description: {
         content: 'Grants additional usages to a specific user'
     }
