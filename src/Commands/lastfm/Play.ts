@@ -3,6 +3,7 @@ import { Command } from '../../Structures/Command/Command'
 import Message from '../../Structures/Message'
 import { IParsedArgs } from '../../typings/Command'
 import { searchTrackOnYouTube, YTDownloader } from '../../Helpers/youtube'
+import { userUsage, DAILY_LIMIT, checkAndResetUsage } from '../../Helpers/userUsage'
 
 @Command('play', {
     aliases: ['playsong'],
@@ -13,9 +14,19 @@ import { searchTrackOnYouTube, YTDownloader } from '../../Helpers/youtube'
 })
 export default class extends BaseCommand {
     override execute = async (M: Message, { text }: IParsedArgs): Promise<void> => {
+        const userId = M.from // Assuming M.from gives a unique identifier for the user
         const songName = text.trim()
+
         if (!songName) {
             return void await M.reply('Please provide a song name.')
+        }
+
+        // Check and reset the user's usage if a day has passed
+        checkAndResetUsage(userId)
+
+        // Check if the user has reached the daily limit
+        if (userUsage[userId].count >= DAILY_LIMIT) {
+            return void await M.reply(`You have reached your daily limit of ${DAILY_LIMIT} uses. Please try again tomorrow.`)
         }
 
         try {
@@ -60,7 +71,9 @@ export default class extends BaseCommand {
                 }
             )
 
-            
+            // Increment the user's usage count
+            userUsage[userId].count++
+
         } catch (e) {
             console.error(e)
             M.reply('Song not found or an error occurred while processing your request.')
