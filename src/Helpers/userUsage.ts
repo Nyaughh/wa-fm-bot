@@ -3,7 +3,7 @@
 export const userUsage: { [userId: string]: { count: number, lastReset: number } } = {}
 
 // Daily limit configuration
-export const DAILY_LIMIT = 5
+export const DAILY_LIMIT = 50
 export const ONE_DAY_MS = 24 * 60 * 60 * 1000
 
 // Function to check and reset user's usage if a day has passed
