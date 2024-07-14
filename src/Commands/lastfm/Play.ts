@@ -44,11 +44,11 @@ export default class extends BaseCommand {
             const image = `https://i.ytimg.com/vi/${vdid}/hqdefault.jpg`
             const data = await downloader.getInfo()
 
-            console.log(`YouTube video details: ${JSON.stringify(data.videoDetails)}`)
+            console.log(`YouTube video details: ${JSON.stringify(data)}`)
 
             const externalAdReply = {
-                title: data.videoDetails.title,
-                body: data.videoDetails.description,
+                title: data.title,
+                body: data.description,
                 mediaType: 2,
                 thumbnailUrl: image,
                 mediaUrl: videoUrl
@@ -59,7 +59,7 @@ export default class extends BaseCommand {
                 {
                     audio: audioBuffer,
                     mimetype: 'audio/mp4',
-                    fileName: `${data.videoDetails.title}.mp3`,
+                    fileName: `${data.title}.mp3`,
                     jpegThumbnail: (await this.client.util.fetchBuffer(image ?? '')).toString('base64'),
                     contextInfo: {
                         externalAdReply

@@ -1,6 +1,6 @@
 import { Client as GeniusClient } from 'genius-lyrics';
 
-const ACCESS_TOKEN = process.env.GENIUS_ACCESS_TOKEN;
+const ACCESS_TOKEN = 'nBUjGNJLO8tUwkrGVUm_rxaX6zkYwcAbtLoH-Ga_mJvzEq3IMV3j6RgFHRZtQMLY';
 const client = new GeniusClient(ACCESS_TOKEN);
 
 export const searchSong = async (query: string) => {

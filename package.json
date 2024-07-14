@@ -80,6 +80,7 @@
     "wa-sticker-formatter": "^4.4.4",
     "wanakana": "^5.3.1",
     "whatsapp-web.js": "^1.23.0",
+    "youtube-dl-exec": "^3.0.6",
     "ytdl-core": "^4.11.5"
   }
 }
