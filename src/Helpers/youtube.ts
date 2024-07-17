@@ -49,11 +49,11 @@ export class YTDownloader {
         return result
     }
 
-    download = async (quality = 'medium') => {
+    download = async () => {
         const filename = `${tmpdir()}/${Math.random().toString(36)}.${this.type === 'audio' ? 'mp3' : 'mp4'}`
         const options = this.type === 'audio'
             ? { format: 'bestaudio', output: filename }
-            : { format: quality === 'high' ? 'bestvideo+bestaudio' : 'worstvideo+bestaudio', output: filename }
+            : { format: 'bestvideo+bestaudio', output: filename }
 
         await youtubedl(this.url, options)
 
