@@ -13,45 +13,81 @@ import { searchSong, getSongLyrics } from '../../Helpers/genius'
     }
 })
 export default class extends BaseCommand {
-    override execute = async (M: Message, { text, flags }: IParsedArgs): Promise<void> => {
-        let user = text.trim()
-        if (M.mentioned.length > 0) {
-            const data = await this.client.database.User.findOne({ jid: M.mentioned[0] }).lean()
-            if (!data?.lastfm)
-                return void (await M.reply('The mentioned user has not logged in to their LastFM account.'))
-            user = data.lastfm
+    override execute = async (M: Message, { text, flags, args, raw, cmd }: IParsedArgs): Promise<void> => {
+        const romaji = 'r' in flags
+        text = text.replace(/--r/g, '').trim()
+
+        if ('songid' in flags) {
+            const songId = flags.songid
+            const { lyrics, romaji: romajiLyrics, info } = await getSongLyrics(parseInt(songId))
+            if (!lyrics || !info)
+                return void (await M.reply('No lyrics found.'))
+            return void (await M.reply(stripIndents`
+                Lyrics for *${info.title}* by *${info.artist.name}*
+                ${romajiLyrics ? `\n*Romanized Lyrics:*\n${romajiLyrics}\n` : ''}
+                ${romajiLyrics ? '\n*Original Lyrics:*\n\n': ''}
+                ${lyrics}
+            `))
         }
-        if (!user) {
+        let song = text.trim()
+        try {
+
+        if (!song) {
             const data = await this.client.database.User.findOne({ jid: M.sender.jid }).lean()
             if (!data?.lastfm)
                 return void (await M.reply(
-                    'Please provide a username or login to your LastFM account using the `login` command.'
+                    'Please provide a song name or login wih LastFM to fetch lyrics for the current song.'
                 ))
-            user = data.lastfm
+            
+            const { tracks } = await this.client.lastfm.user.getRecentTracks({ user: data.lastfm, limit: 1 })
+            const mostRecentTrack = tracks[0]
+            if (!mostRecentTrack)
+                return void (await M.reply('No recent tracks found.'))
+            
+            const query = `${mostRecentTrack.artist.name} ${mostRecentTrack.name} ${romaji ? 'Romanized' : ''}`
+            const results = await searchSong(query)
+
+            if (!results.length)
+                return void (await M.reply('No results found.'))
+
+
+            return this.execute(M, { flags: { songid: results[0].id.toString(), ...flags }, text: query, args, raw, cmd })
         }
 
-        try {
-            const { tracks } = await this.client.lastfm.user.getRecentTracks({ user: user, limit: 1 })
-            const mostRecentTrack = tracks[0]
+        const results = await searchSong(song)
 
-            const query = `${mostRecentTrack.name} ${mostRecentTrack.artist.name} ${'romaji' in flags ? 'Genius Romanization': ''}`
-            const hits = await searchSong(query)
+        if (!results.length)
+            return void (await M.reply('No results found.'))
 
-            if (hits.length === 0) {
-                return void (await M.reply('Lyrics not found.'))
+        await M.replyWithButtons(
+            stripIndents`
+                Lyrics Search Results for *${song}*
+             `,
+            'text',
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            {
+                headerText: `WA FM`,
+                footerText: 'Powered by Genius',
+                buttonText: 'Results',
+                sections: [
+                    {
+                        title: `**${results.length}** Results found`,
+                        rows: results.map((result, i) => { 
+                            const romajiFlag = result.fullTitle.toLowerCase().includes('romanized') ? '' : romaji ? '--r' : ''
+                            return ({
+                            title: `${i + 1}. ${result.fullTitle}`,
+                            id: `${this.client.config.prefix}lyrics --songid=${result.id} ${romajiFlag}`
+                        })})
+                        
+                    }
+                ]
             }
-            const data = await this.client.lastfm.user.getInfo(user)
-            const lyrics = await getSongLyrics(hits[0].id)
-            
-            await M.reply(
-                stripIndents`
-                    ${data.name} ${mostRecentTrack.nowplaying ? 'is now listening to' : 'last listened to'}:
-                    ${mostRecentTrack.name} - ${mostRecentTrack.artist.name} (${mostRecentTrack.album.name})
-                    
-                    Lyrics:
-                    ${lyrics}
-                `
-            )
+        )
+
+
         } catch (e) {
             console.log(e)
             return void (await M.reply(`Error fetching lyrics.`))
