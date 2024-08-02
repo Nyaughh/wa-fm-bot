@@ -8,7 +8,7 @@ RUN apk add --no-cache python3 py3-pip make g++
 WORKDIR /app
 
 # Copy package.json and package-lock.json to the working directory
-COPY package.json package-lock.json ./
+COPY package.json ./
 
 # Install the application dependencies
 RUN npm i
