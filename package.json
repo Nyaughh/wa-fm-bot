@@ -66,6 +66,7 @@
     "genius-lyrics-api": "^3.2.1",
     "gifencoder": "^2.0.1",
     "googleapis": "^137.1.0",
+    "groq-sdk": "^0.5.0",
     "jimp": "^0.16.1",
     "lastfm-typed": "^2.1.0",
     "link-preview-js": "^3.0.5",
