@@ -45,7 +45,6 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "@adiwajshing/baileys": "^4.4.0",
     "@nechlophomeriaa/spotify-finder": "^1.0.3",
     "@settlin/collage": "^2.0.1",
     "@spotify/web-api-ts-sdk": "^1.2.0",
