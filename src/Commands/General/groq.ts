@@ -60,10 +60,10 @@ export default class extends BaseCommand {
         You can use the command "execute" to execute a command. Only use this if you are use the user wants something done
 
         Eg: User: I want to know what my top artists are.
-        You: execute({ command: "/topartists" })
+        You: /topartists
 
         Eg: User: Give me the video for sumika lovers
-        You: execute({ command: "/playvideo sumika lovers" })
+        You: /playvideo sumika lovers
         `,
       });
     }
