@@ -34,7 +34,7 @@ export default class extends BaseCommand {
     const userJid = M.sender.jid;
     const username = M.sender.username || "unknown";
     const isGroup = !!M.group;
-    const excludedCmds = ["eval", 'remove', 'promote', 'demote', 'unban', 'ping']
+    const excludedCmds = ["eval", 'ban', 'unban', 'hi']
     // Initialize group conversation history
     if (!groupConversationHistory[groupJid]) {
       groupConversationHistory[groupJid] = [
