@@ -3,6 +3,10 @@ import Client from '../Structures/Client'
 import { BaseCommand } from '../Structures/Command/BaseCommand'
 import Message from '../Structures/Message'
 import { ICategories, IParsedArgs, Permissons } from '../typings/Command'
+import Groq from "groq-sdk";
+
+// Initialize the Groq client with your API key.
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 export class MessageHandler {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,6 +56,24 @@ export class MessageHandler {
         )
     }
 
+    private async getCorrectedMessage(message: string): Promise<string | null> {
+        const response = await groq.chat.completions.create({
+            messages: [
+                {
+                    role: 'system',
+                    content: 'You are an assistant that corrects grammar mistakes in user messages.',
+                },
+                {
+                    role: 'user',
+                    content: `Correct the grammar in this sentence: "${message}"`,
+                },
+            ],
+            model: "llama-3.1-70b-versatile",
+        });
+
+        return response.choices[0]?.message?.content || null;
+    }
+
     public handle = async (M: Message): Promise<void> => {
         const log = (command = false, cmd = '', len = 0) =>
             this.logMessage(command, M.sender.username, M.group?.title, cmd, len)
@@ -59,7 +81,23 @@ export class MessageHandler {
         const info = M.group ? await this.client.database.getGroup(M.from) : undefined
         await this.client.database.getUser(M.sender.jid)
 
-        if (!isCommand) return void log()
+        if (!isCommand) {
+            const userMessage = M.content;
+
+            if (userMessage) {
+                try {
+                    const correctedMessage = await this.getCorrectedMessage(userMessage);
+
+                    if (correctedMessage && correctedMessage !== userMessage) {
+                        await M.reply(`*${correctedMessage}`);
+                    }
+                } catch (error) {
+                    console.error('Error checking grammar:', error);
+                }
+            }
+
+            return void log()
+        }
         const parsedArgs = this.parseArgs(M.content)
         log(true, parsedArgs.cmd, parsedArgs.args.length)
         if (!parsedArgs.cmd) return void M.reply(`Enter a command following ${this.client.config.prefix}`)
