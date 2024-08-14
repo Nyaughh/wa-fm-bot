@@ -82,7 +82,7 @@ export default class extends BaseCommand {
     if (recentSongs) {
       groupConversationHistory[groupJid].push({
         role: "system",
-        content: `${username}'s recently played songs: ${recentSongs}. You can reference these in your response if relevant.`,
+        content: `${username}'s recently played songs: ${recentSongs}. Reference these in your response`,
       });
     }
 
