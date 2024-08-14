@@ -139,7 +139,7 @@ export default class extends BaseCommand {
         groupConversationHistory[M.from].push({
           role: "tool",
           name: response.tool_calls[0].function.name,
-          content: res[0],
+          content: res,
           tool_call_id: response.tool_calls[0].id,
         });
         return this.processGroqResponse(groupConversationHistory[M.from], M)
@@ -149,7 +149,7 @@ export default class extends BaseCommand {
         groupConversationHistory[M.from].push({
           role: "tool",
           name: response.tool_calls[0].function.name,
-          content: res[0],
+          content: res,
           tool_call_id: response.tool_calls[0].id,
         });
         return this.processGroqResponse(groupConversationHistory[M.from], M)
