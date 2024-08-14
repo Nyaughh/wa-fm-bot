@@ -82,20 +82,7 @@ export class MessageHandler {
         await this.client.database.getUser(M.sender.jid)
 
         if (!isCommand) {
-            const userMessage = M.content;
-
-            if (userMessage) {
-                try {
-                    const correctedMessage = await this.getCorrectedMessage(userMessage);
-
-                    if (correctedMessage && correctedMessage !== userMessage) {
-                        await M.reply(`*${correctedMessage}`);
-                    }
-                } catch (error) {
-                    console.error('Error checking grammar:', error);
-                }
-            }
-
+          
             return void log()
         }
         const parsedArgs = this.parseArgs(M.content)
