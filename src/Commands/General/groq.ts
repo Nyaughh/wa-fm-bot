@@ -35,6 +35,7 @@ export default class extends BaseCommand {
     const isGroup = !!M.group;
     const excludedCmds = ["eval", 'ban', 'unban', 'hi']
     const messages = groupConversationHistory[groupJid] || []
+    console.log(messages)
     if (messages.length > 50) {
       groupConversationHistory[groupJid] = messages.slice(-45)
     }
@@ -44,7 +45,7 @@ export default class extends BaseCommand {
         {
           role: "system",
           content: isGroup
-            ? `You are a helpful assistant in a group chat named "${M.group?.title}".`
+            ? `You are a helpful assistant in a group chat named "${M.group?.title}". Ask about the user's recent songs and playlists and give them recommendations.`
             : `You are a helpful assistant in a private chat. Provide personalized and direct responses.`,
         },
       ];
@@ -54,7 +55,7 @@ export default class extends BaseCommand {
         content: `
         You have access to the following commands: ${commands
           .filter(c => !excludedCmds.includes(c.id))
-          .reduce((acc, c) => `${acc}\n${c.id},${c.options.aliases.join(', ')}: ${c.options.description.content}\n Usage:${this.client.config.prefix} ${c.options.description.usage} ?? <text>`, '')}
+          .reduce((acc, c) => `${acc}\n${c.id},${c.options.aliases.join(', ')}: ${c.options.description.content}\n Usage:${this.client.config.prefix}${c.options.aliases[0]} ${c.options.description.usage ?? '<text>'}`, '')}
         
         You can use the command "execute" to execute a command. Only use this if you are use the user wants something done
 
