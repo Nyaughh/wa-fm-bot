@@ -29,12 +29,15 @@ export default class extends BaseCommand {
     const commands = Array.from(this.handler.commands.values())
 
 
-
     const groupJid = M.from;
     const userJid = M.sender.jid;
     const username = M.sender.username || "unknown";
     const isGroup = !!M.group;
     const excludedCmds = ["eval", 'ban', 'unban', 'hi']
+    const messages = groupConversationHistory[groupJid] || []
+    if (messages.length > 50) {
+      groupConversationHistory[groupJid] = messages.slice(-45)
+    }
     // Initialize group conversation history
     if (!groupConversationHistory[groupJid]) {
       groupConversationHistory[groupJid] = [
