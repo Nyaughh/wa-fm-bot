@@ -43,7 +43,9 @@ export default class extends BaseCommand {
                 return void await M.reply('Video file is too large to send.')
             }
 
-            await M.replyRaw({ video: videoBuffer })
+            // Ensure that the video buffer is properly formatted for sending
+            const videoData = Buffer.from(videoBuffer)
+            await M.replyRaw({ video: videoData })
 
         } catch (e) {
             console.error('Error occurred in playvideo command:', e)
