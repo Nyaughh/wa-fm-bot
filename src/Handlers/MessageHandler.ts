@@ -105,7 +105,7 @@ export class MessageHandler {
         return { valid: true }
     }
 
-    private parseArgs = (raw: string): IParsedArgs => {
+    parseArgs = (raw: string): IParsedArgs => {
         const args = raw.split(' ')
         const cmd = args.shift()?.toLocaleLowerCase().slice(this.client.config.prefix.length) ?? ''
         const text = args.join(' ')
