@@ -5,12 +5,9 @@ import Message from '../../Structures/Message';
 import { IParsedArgs } from '../../typings/Command';
 import { stripIndents } from 'common-tags';
 
-// Initialize the Groq client with your API key.
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-// Store conversation history for each user by their JID
 const conversationHistory: { [jid: string]: { role: 'system' | 'user' | 'assistant', content: string }[] } = {};
-
 @Command('recommendations', {
   aliases: ['rec'],
   category: 'LastFM',
@@ -33,14 +30,12 @@ export default class extends BaseCommand {
     }
 
     try {
-      // Fetch user data from LastFM
       const [topTracks, topArtists] = await Promise.all([
         this.client.lastfm.user.getTopTracks({ user: user, limit: 200}),
         this.client.lastfm.user.getTopArtists({ user: user, limit: 200 }),
 
       ]);
 
-      // Prepare the prompt for AI based on user's listening history
       const userJid = M.sender.jid;
       const username = M.sender.username || "unknown";
       const historyPrompt = stripIndents`

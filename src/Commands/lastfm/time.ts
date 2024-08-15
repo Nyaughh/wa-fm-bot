@@ -36,24 +36,45 @@ export default class extends BaseCommand {
             const userInfo = await this.client.lastfm.user.getInfo({ user })
             const topArtists = await this.client.lastfm.user.getTopArtists({ user, limit: showAll ? 100 : 5 })
 
-            // Assume average track duration is 3.5 minutes (210 seconds)
-            const averageTrackDuration = 210
+            const totalScrobbles = userInfo.playcount
+            const registeredDate = new Date(userInfo.registered * 1000)
+            const daysSinceRegistration = Math.floor((Date.now() - registeredDate.getTime()) / (1000 * 60 * 60 * 24))
+            const topTracks = await this.client.lastfm.user.getTopTracks({ user, limit: 1000 })
 
-            const totalListeningTime = userInfo.playcount * averageTrackDuration
-            const totalListeningTimeHours = (totalListeningTime / 3600).toFixed(2)
+            const totalListeningTime = topTracks.tracks.reduce((acc, track) => acc + (track.duration || 0) * track.playcount, 0)
 
-            const artistListeningTimes = topArtists.artists.map(artist => ({
-                name: artist.name,
-                time: artist.playcount * averageTrackDuration
+            const artistListeningTimes = (await Promise.all(topArtists.artists.map(async artist => {
+                let artistTime = 0 
+                const artistTracks = topTracks.tracks.filter(track => track.artist.name === artist.name)
+                for (const track of artistTracks) {
+                    const trackTime = (track.duration || 0) * track.playcount
+                    artistTime += trackTime
+                }
+                return { name: artist.name, time: artistTime }
+            }))).map((artist, i) => ({
+                ...artist,
+                percentage: ((artist.time / totalListeningTime) * 100).toFixed(2)
             }))
+
+            const totalListeningTimeHours = (totalListeningTime / 3600).toFixed(2)
+            const scrobblesPerDay = (totalScrobbles / daysSinceRegistration).toFixed(2)
+            const hoursPerDay = (Number(totalListeningTimeHours) / daysSinceRegistration).toFixed(2)
 
             const text = stripIndents`
                 Username: ${userInfo.name}
+                Registered: ${registeredDate.toDateString()}
+                Total Scrobbles: ${totalScrobbles}
                 Total Listening Time: ${totalListeningTimeHours} hours
+                Average Scrobbles per Day: ${scrobblesPerDay}
+                Average Listening Time per Day: ${hoursPerDay} hours
+
                 Listening Time by Artist:
                 ${artistListeningTimes.map((artist, i) => `
-                    ${i + 1}. ${artist.name} - ${((artist.time / totalListeningTime) * 100).toFixed(2)}%
+                    ${i + 1}. ${artist.name} - ${(artist.time / 3600).toFixed(2)} hours (${artist.percentage}%)
                 `).join('\n')}
+
+                Rest: ${((totalListeningTime - artistListeningTimes.reduce((acc, artist) => acc + artist.time, 0)) / 3600).toFixed(2)} hours
+
             `
 
             await M.reply(text)
