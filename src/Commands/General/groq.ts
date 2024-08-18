@@ -1,13 +1,13 @@
-import Groq from "groq-sdk";
+import Anthropic from "@anthropic-ai/sdk";
 import { BaseCommand } from '../../Structures/Command/BaseCommand';
 import { Command } from '../../Structures/Command/Command';
 import Message from '../../Structures/Message';
-import { ChatCompletion, ChatCompletionMessageParam } from "groq-sdk/resources/chat/completions";
 import axios from "axios";
+import { ContentBlock, ToolResultBlockParam, ToolUseBlockParam } from "@anthropic-ai/sdk/resources";
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const groupConversationHistory: { [groupJid: string]: {  name?: string, tool_call_id?: string, role: 'system' | 'user' | 'assistant' | 'tool' , content: string }[] } = {};
+const groupConversationHistory: { [groupJid: string]: { systemMessage: string, messages: { name?: string, tool_call_id?: string, role: 'assistant' | 'user' , content: string | ToolResultBlockParam[] | ContentBlock[] }[] } } = {};
 
 @Command('chat', {
   aliases: ['/'],
@@ -30,26 +30,31 @@ export default class extends BaseCommand {
     const username = M.sender.username || "unknown"
     const isGroup = !!M.group;
 
-    const messages = groupConversationHistory[groupJid] || []
+    if (!groupConversationHistory[groupJid]) {
+      groupConversationHistory[groupJid] = {
+        systemMessage: '',
+        messages: []
+      }
+    }
+    let { systemMessage, messages } = groupConversationHistory[groupJid]
 
     if (messages.length > 50) {
-      groupConversationHistory[groupJid] = messages.slice(-45)
+      // reset the conversation history
+      groupConversationHistory[groupJid] = {
+        systemMessage: '',
+        messages: []
+      }
     }
 
-    if (!groupConversationHistory[groupJid]) {
-      groupConversationHistory[groupJid] = [
-        {
-          role: "system",
-          content: isGroup
+    if (!systemMessage) {
+        systemMessage = isGroup
             ? `You are a helpful assistant in a group chat named "${M.group?.title}". The messages from the users would be in the following format:
             [USERNAME] (LastFM USERNAME): [MESSAGE]
             [QUOTED MESSAGE]
             You can use the LastFM API to get information about the user's recently played songs and give them recommendations.`
             : `You are a helpful assistant in a private chat. Provide personalized and direct responses.`,
-        },
-        {
-          role: "system",
-          content: `You have access to the following tools:
+        
+        systemMessage += `\nYou have access to the following tools:
           - getlastfmRecs: Get the recommended songs from a LastFM user
           - getlastfmMix: Get a mix of songs from a LastFM user
           - getTopSongs: Get the top songs of a LastFM user
@@ -65,16 +70,16 @@ export default class extends BaseCommand {
           First you need to get the LastFM username associated with the phone number
           After you get the result back, then only you can fetch the recommended songs from the user.`
     
-        }
-      ];
+          groupConversationHistory[groupJid].systemMessage = systemMessage
     }
+
 
     let recentSongs = '';
     let lastfmUsername = ''
     const user = await this.client.database.User.findOne({ jid: userJid }).lean();
     if (user?.lastfm) {
       try {
-        const { tracks } = await this.client.lastfm.user.getRecentTracks({ user: user.lastfm });
+        const { tracks } = await this.client.lastfm.user.getRecentTracks({ user: user.lastfm, limit: 2 });
         recentSongs = tracks.map(track => `${track.name} by ${track.artist.name}`).join(', ');
         const lfmuser = await this.client.lastfm.user.getInfo({ user: user.lastfm })
         lastfmUsername = lfmuser.name
@@ -84,8 +89,8 @@ export default class extends BaseCommand {
     }
   
     if (recentSongs) {
-      groupConversationHistory[groupJid].push({
-        role: "system",
+      groupConversationHistory[groupJid].messages.push({
+        role: "user",
         content: `${username}'s recently played songs: ${recentSongs}. You can ask about these songs and give them recommendations.`
       });
     }
@@ -104,198 +109,229 @@ export default class extends BaseCommand {
       ? `${username}${lastfmUsername ? ` (Lastfm: ${lastfmUsername})` : ''}: ${userMessage} ${quoted ? '\n\n[QUOTED]: ' + quoted : ''}`
       : userMessage;
 
-    groupConversationHistory[groupJid].push({
+    groupConversationHistory[groupJid].messages.push({
       role: "user",
       content: formattedUserMessage,
     });
 
 
     try {
-      let response = await this.processGroqResponse(groupConversationHistory[groupJid], M);
+      let response = await this.processAnthropicResponse(groupConversationHistory[groupJid], M);
 
       await M.reply(response);
     } catch (error) {
       console.error('Error processing request:', error);
+      delete groupConversationHistory[groupJid]
       await M.reply('Sorry, there was an error processing your request.');
     }
   };
 
-  private async processGroqResponse(messages: { role: 'system' | 'user' | 'assistant' | 'tool', name?: string, tool_call_id?: string, content: string }[], M: Message): Promise<string> {
-    const chatCompletion = await this.getGroqChatCompletion(messages as any)
-    const response = chatCompletion.choices[0].message
-    console.log(response.tool_calls?.map(tool => tool.function.name))
-    if (response.tool_calls) {
-      for (const toolCall of response.tool_calls) {    
+  private async processAnthropicResponse(messages: typeof groupConversationHistory[string], M: Message): Promise<string> {
+    // Combine consecutive user messages
+    const combinedMessages = this.combineConsecutiveUserMessages(messages.messages);
+
+    const message = await this.getAnthropicChatCompletion({
+      systemMessage: messages.systemMessage,
+      messages: combinedMessages
+    });
+
+    groupConversationHistory[M.from].messages.push({
+      role: "assistant",
+      content: message.content
+    })
+
+    const textContent = message.content.filter(content => content.type === 'text').map(content => content.text).join('').trim()
+    const toolCalls = message.content.filter(content => content.type === 'tool_use').map(content => content);
+    
+    // If there's no text content, process tool calls synchronously
+    (async () => { if (toolCalls.length > 0) {
+      const results = new Array<ToolResultBlockParam>()
+      for (const toolCall of toolCalls) {    
+
         let toolresponse = ''
-      if (toolCall.function.name === "getlastfmRecs") {
-        const { username, limit } = JSON.parse(toolCall.function.arguments)
-        toolresponse = await this.getlastfmRecs(username, limit)
-      } else if (toolCall.function.name === "getlastfmMix") {
-        const { username, limit } = JSON.parse(toolCall.function.arguments)
-        toolresponse = await this.getlastfmMix(username, limit)
-      } else if (toolCall.function.name === "getTopSongs") {
-        const { username, limit, period } = JSON.parse(toolCall.function.arguments)
-        toolresponse = await this.getTopSongs(username, limit, period)
-      } else if (toolCall.function.name === "getTopAlbums") {
-        const { username, limit, period } = JSON.parse(toolCall.function.arguments)
-        toolresponse = await this.getTopAlbums(username, limit, period)
-      } else if (toolCall.function.name === "getLastFmUsernameFromPhone") {
-        const { phone } = JSON.parse(toolCall.function.arguments)
-        toolresponse = await this.getLastFmUsernameFromPhone(phone)    
-      } else if (toolCall.function.name === "getSimilarArtists") {
-        const { artist, limit } = JSON.parse(toolCall.function.arguments)
-        toolresponse = await this.getSimilarArtists(artist, limit)
-      } else if (toolCall.function.name === "getArtistSongs") {
-        const { artist, limit } = JSON.parse(toolCall.function.arguments)
-        toolresponse = await this.getArtistSongs(artist, limit)
-      } else if (toolCall.function.name === "getArtistInfo") {
-        const { artist } = JSON.parse(toolCall.function.arguments)
-        toolresponse = await this.getArtistInfo(artist)
+        if (toolCall.name === "getlastfmRecs") {
+          const { username, limit } = toolCall.input as { username: string, limit: number }
+          toolresponse = await this.getlastfmRecs(username, limit)
+        } else if (toolCall.name === "getlastfmMix") {
+          const { username, limit } = toolCall.input as { username: string, limit: number }
+          toolresponse = await this.getlastfmMix(username, limit)
+        } else if (toolCall.name === "getTopSongs") {
+          const { username, limit, period } = toolCall.input as { username: string, limit: number, period: string }
+          toolresponse = await this.getTopSongs(username, limit, period as 'overall' | '7day' | '1month' | '3month' | '6month' | '12month')
+        } else if (toolCall.name === "getTopAlbums") {
+          const { username, limit, period } = toolCall.input as { username: string, limit: number, period: string }
+          toolresponse = await this.getTopAlbums(username, limit, period as 'overall' | '7day' | '1month' | '3month' | '6month' | '12month')
+        } else if (toolCall.name === "getLastFmUsernameFromPhone") {
+          const { phone } = toolCall.input as { phone: string }
+          toolresponse = await this.getLastFmUsernameFromPhone(phone)    
+        } else if (toolCall.name === "getSimilarArtists") {
+          const { artist, limit } = toolCall.input as { artist: string, limit: number }
+          toolresponse = await this.getSimilarArtists(artist, limit)
+        } else if (toolCall.name === "getArtistSongs") {
+          const { artist, limit } = toolCall.input as { artist: string, limit: number }
+          toolresponse = await this.getArtistSongs(artist, limit)
+        } else if (toolCall.name === "getArtistInfo") {
+          const { artist } = toolCall.input as { artist: string }
+          toolresponse = await this.getArtistInfo(artist)
+        }
+
+        if (!toolresponse) {
+          continue
+        }
+
+        results.push({
+          type: "tool_result",
+          tool_use_id: toolCall.id,
+          content: toolresponse
+        })
+
+
+
       }
+      if (results.length > 0) {
+        groupConversationHistory[M.from].messages.push({
+          role: "user",
+          content: results
+        })
 
-      console.log(toolCall.function.name, toolresponse)
+        M.reply(await this.processAnthropicResponse(groupConversationHistory[M.from], M)) 
+      }
+    }})()
 
-      groupConversationHistory[M.from].push({
-        role: "tool",
-        name: toolCall.function.name,
-        tool_call_id: toolCall.id,
-        content: toolresponse
-      })
-
-      return this.processGroqResponse(groupConversationHistory[M.from], M)
-
+    if (textContent) {
+      return textContent
     }
+
+    return "I don't know what to say"
   }
 
-    groupConversationHistory[M.from].push({ ...response, content: response.content || "I don't know what to say" })
-    return response.content || "I don't know what to say"
+  private combineConsecutiveUserMessages(messages: typeof groupConversationHistory[string]['messages']): typeof groupConversationHistory[string]['messages'] {
+    return messages.reduce((acc, curr) => {
+      if (curr.role === 'user' && acc.length > 0 && acc[acc.length - 1].role === 'user') {
+        // Combine with the previous user message
+        const lastMessage = acc[acc.length - 1];
+        if (typeof lastMessage.content === 'string' && typeof curr.content === 'string') {
+          lastMessage.content += '\n' + curr.content;
+        } else {
+          // If either message has tool results, we can't combine them
+          acc.push(curr);
+        }
+      } else {
+        // Add the message as is
+        acc.push(curr);
+      }
+      return acc;
+    }, [] as typeof groupConversationHistory[string]['messages']);
   }
 
-
-  private async getGroqChatCompletion(messages: { role: 'system' | 'user' | 'assistant' | 'tool', name: string, tool_call_id?: string, content: string }[]) {
-    return groq.chat.completions.create({
-      messages: messages as ChatCompletionMessageParam[],
-      model: "llama3-groq-70b-8192-tool-use-preview",
+  
+  private async getAnthropicChatCompletion(history: { systemMessage: string, messages: typeof groupConversationHistory[string]['messages'] }) {
+    
+    return anthropic.messages.create({
+      messages: history.messages,
+      model: "claude-3-5-sonnet-20240620",
+      system: history.systemMessage,
       temperature: 0.7,
-      tools: [{
-        type: "function",
-        function: {
-          name: "getlastfmRecs",
-          description: "Get the recommended songs from a LastFM user",
-          parameters: {
-            type: "object",
-            properties: {
-              username: { type: "string", description: "The username of the LastFM user" },
-              limit: { type: "number", description: "The number of songs to get" }
-            },
-            required: ["username"],
-          }
+      max_tokens: 1024,
+      tools: [
+        {
+            name: "getlastfmRecs",
+            description: "Get the recommended songs from a LastFM user",
+            input_schema: {
+              type: "object",
+              properties: {
+                username: { type: "string", description: "The username of the LastFM user" },
+                limit: { type: "number", description: "The number of songs to get" }
+              },
+              required: ["username"],
+            }
+          },
+        {
+            name: "getlastfmMix",
+            description: "Get a mix of songs from a LastFM user",
+            input_schema: {
+              type: "object",
+              properties: {
+                username: { type: "string", description: "The username of the LastFM user" },
+                limit: { type: "number", description: "The number of songs to get" }
+              },
+              required: ["username"],
+            }
+
+        },
+        {
+            name: "getTopSongs",
+            description: "Get the top songs of a LastFM user",
+            input_schema: {
+              type: "object",
+              properties: {
+                username: { type: "string", description: "The username of the LastFM user" },
+                limit: { type: "number", description: "The number of songs to get" },
+                period: { type: "string", enum: ['overall', '7day', '1month', '3month', '6month', '12month'], description: "The time period for the top songs" }
+              },
+              required: ["username"],
+            }
+        },
+        {
+            name: "getTopAlbums",
+            description: "Get the top albums of a LastFM user",
+            input_schema: {
+              type: "object",
+              properties: {
+                username: { type: "string", description: "The username of the LastFM user" },
+                limit: { type: "number", description: "The number of albums to get" },
+                period: { type: "string", enum: ['overall', '7day', '1month', '3month', '6month', '12month'], description: "The time period for the top albums" }
+              },
+              required: ["username"],
+            }
+        },
+        {
+            name: "getLastFmUsernameFromPhone",
+            description: "Get the LastFM username associated with a WhatsApp phone number",
+            input_schema: {
+              type: "object",
+              properties: {
+                phone: { type: "string", description: "The WhatsApp phone number" }
+              },
+              required: ["phone"],
+            }
+        },
+        {
+            name: "getSimilarArtists",
+            description: "Get similar artists to a given artist",
+            input_schema: {
+              type: "object",
+              properties: {
+                artist: { type: "string", description: "The name of the artist" },
+                limit: { type: "number", description: "The number of similar artists to get" }
+              },
+              required: ["artist"],
+            }
+        },
+        {
+            name: "getArtistSongs",
+            description: "Get top songs of a given artist",
+            input_schema: {
+              type: "object",
+              properties: {
+                artist: { type: "string", description: "The name of the artist" },
+                limit: { type: "number", description: "The number of songs to get" }
+              },
+              required: ["artist"],
+            }
+        },
+        {
+            name: "getArtistInfo",
+            description: "Get the bio of a given artist",
+            input_schema: {
+              type: "object",
+              properties: {
+                artist: { type: "string", description: "The name of the artist" }
+              },
+              required: ["artist"],
+            }
         }
-      },
-      {
-        type: "function",
-        function: {
-          name: "getlastfmMix",
-          description: "Get a mix of songs from a LastFM user",
-          parameters: {
-            type: "object",
-            properties: {
-              username: { type: "string", description: "The username of the LastFM user" },
-              limit: { type: "number", description: "The number of songs to get" }
-            },
-            required: ["username"],
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "getTopSongs",
-          description: "Get the top songs of a LastFM user",
-          parameters: {
-            type: "object",
-            properties: {
-              username: { type: "string", description: "The username of the LastFM user" },
-              limit: { type: "number", description: "The number of songs to get" },
-              period: { type: "string", enum: ['overall', '7day', '1month', '3month', '6month', '12month'], description: "The time period for the top songs" }
-            },
-            required: ["username"],
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "getTopAlbums",
-          description: "Get the top albums of a LastFM user",
-          parameters: {
-            type: "object",
-            properties: {
-              username: { type: "string", description: "The username of the LastFM user" },
-              limit: { type: "number", description: "The number of albums to get" },
-              period: { type: "string", enum: ['overall', '7day', '1month', '3month', '6month', '12month'], description: "The time period for the top albums" }
-            },
-            required: ["username"],
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "getLastFmUsernameFromPhone",
-          description: "Get the LastFM username associated with a WhatsApp phone number",
-          parameters: {
-            type: "object",
-            properties: {
-              phone: { type: "string", description: "The WhatsApp phone number" }
-            },
-            required: ["phone"],
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "getSimilarArtists",
-          description: "Get similar artists to a given artist",
-          parameters: {
-            type: "object",
-            properties: {
-              artist: { type: "string", description: "The name of the artist" },
-              limit: { type: "number", description: "The number of similar artists to get" }
-            },
-            required: ["artist"],
-          }
-        }
-      },
-      {
-        type: "function",
-        function: {
-          name: "getArtistSongs",
-          description: "Get top songs of a given artist",
-          parameters: {
-            type: "object",
-            properties: {
-              artist: { type: "string", description: "The name of the artist" },
-              limit: { type: "number", description: "The number of songs to get" }
-            },
-            required: ["artist"],
-          }
-        }
-      }, {
-        type: "function",
-        function: {
-          name: "getArtistInfo",
-          description: "Get the bio of a given artist",
-          parameters: {
-            type: "object",
-            properties: {
-              artist: { type: "string", description: "The name of the artist" }
-            },
-            required: ["artist"],
-          }
-        }
-      }]
+      ]
     })
   }
 

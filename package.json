@@ -42,9 +42,10 @@
     "prettier": "^2.5.1",
     "prisma": "^5.14.0",
     "ts-node": "^10.4.0",
-    "typescript": "^5.4.5"
+    "typescript": "^5.5.2"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.26.1",
     "@nechlophomeriaa/spotify-finder": "^1.0.3",
     "@settlin/collage": "^2.0.1",
     "@spotify/web-api-ts-sdk": "^1.2.0",
