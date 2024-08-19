@@ -64,7 +64,7 @@ export default class extends BaseCommand {
 
     const formattedUserMessage = this.formatUserMessage(M, userMessage, lastfmUsername);
     messages.push({ role: "user", content: formattedUserMessage });
-    const thinkingMessage = await M.reply('Thinking:' + frames[0]);
+    const thinkingMessage = await M.reply('Thinking... ' + frames[0]);
     let frameIndex = 0;
     const spinner = setInterval(async () => {
       frameIndex = (frameIndex + 1) % frames.length;
