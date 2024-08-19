@@ -14,6 +14,19 @@ const anthropic = new AnthropicVertex({
 });
 
 const groupConversationHistory: { [groupJid: string]: { systemMessage: string, messages: any[] } } = {};
+const frames = [
+  '□□□□□',
+  '■□□□□',
+  '■■□□□',
+  '■■■□□',
+  '■■■■□',
+  '■■■■■',
+  '□■■■■',
+  '□□■■■',
+  '□□□■■',
+  '□□□□■',
+  '□□□□□',
+];
 
 @Command('chat', {
   aliases: ['/'],
@@ -51,14 +64,34 @@ export default class extends BaseCommand {
 
     const formattedUserMessage = this.formatUserMessage(M, userMessage, lastfmUsername);
     messages.push({ role: "user", content: formattedUserMessage });
-
+    const thinkingMessage = await M.reply('Thinking:' + frames[0]);
+    let frameIndex = 0;
+    const spinner = setInterval(async () => {
+      frameIndex = (frameIndex + 1) % frames.length;
+      await this.client.sendMessage(M.from, { 
+        text: 'Thinking... ' + frames[frameIndex],
+        edit: thinkingMessage!.key  
+      });  
+    }, 1500)
     try {
       const response = await this.processAnthropicResponse(groupConversationHistory[groupJid], M);
-      await M.reply(response);
+      clearInterval(spinner);
+      setTimeout(async () => {
+        await this.client.sendMessage(M.from, {
+          text: response,
+          edit: thinkingMessage!.key
+        });
+      }, 1000);
     } catch (error) {
       console.error('Error processing request:', error);
       delete groupConversationHistory[groupJid];
-      await M.reply('Sorry, there was an error processing your request.');
+      clearInterval(spinner);
+      setTimeout(async () => {
+        await this.client.sendMessage(M.from, {
+          text: 'Sorry, there was an error processing your request.',
+          edit: thinkingMessage!.key
+        });
+      }, 1000);
     }
   };
 
