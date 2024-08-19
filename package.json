@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.26.1",
+    "@anthropic-ai/vertex-sdk": "^0.4.1",
     "@nechlophomeriaa/spotify-finder": "^1.0.3",
     "@settlin/collage": "^2.0.1",
     "@spotify/web-api-ts-sdk": "^1.2.0",

@@ -1,11 +1,17 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { AnthropicVertex } from "@anthropic-ai/vertex-sdk";
 import { BaseCommand } from '../../Structures/Command/BaseCommand';
 import { Command } from '../../Structures/Command/Command';
 import Message from '../../Structures/Message';
 import axios from "axios";
 import { ContentBlock, ToolResultBlockParam, ToolUseBlockParam } from "@anthropic-ai/sdk/resources";
+import { GoogleAuth } from 'google-auth-library';
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const anthropic = new AnthropicVertex({
+  googleAuth: new GoogleAuth({
+    credentials: JSON.parse(process.env.GOOGLE_AUTH_CREDENTIALS as string),
+    scopes: ['https://www.googleapis.com/auth/cloud-platform']
+  }),
+});
 
 const groupConversationHistory: { [groupJid: string]: { systemMessage: string, messages: any[] } } = {};
 
@@ -105,7 +111,7 @@ export default class extends BaseCommand {
   private async getAnthropicChatCompletion(history: { systemMessage: string, messages: any[] }) {
     return anthropic.messages.create({
       messages: history.messages,
-      model: "claude-3-5-sonnet-20240620",
+      model: "claude-3-5-sonnet@20240620",
       system: history.systemMessage,
       temperature: 0.7,
       max_tokens: 1024,
