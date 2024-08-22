@@ -43,15 +43,11 @@ export default class extends BaseCommand {
                 })
                 const { name: username } = await this.client.lastfm.user.getInfo({ user: u.lastfm })
                 return { username, plays: stats.userplaycount ?? 0, jid: u.jid }
-            }))).sort((a, b) => {
-                if (a.status === 'fulfilled' && b.status === 'fulfilled') {
-                    return (b.value as any).plays - (a.value as any).plays
-                }
-                return 0
-            }).map((r) => r.status === 'fulfilled' ? {
+            }))).map((r) => r.status === 'fulfilled' ? {
                 ...r.value,
                 waname: this.client.getContact(r.value.jid).username ?? ''
-            } : null).filter((r): r is { username: string, plays: number, jid: string, waname: string } => r !== null && r.plays > 0);
+            } : null).filter((r): r is { username: string, plays: number, jid: string, waname: string } => r !== null && r.plays > 0)
+            .sort((a, b) => b.plays - a.plays);
 
             await M.reply(stripIndents`
                 *${artistName}* in ${M.group!.title}
