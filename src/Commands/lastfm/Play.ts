@@ -44,8 +44,6 @@ export default class extends BaseCommand {
             const image = `https://i.ytimg.com/vi/${vdid}/hqdefault.jpg`
             const data = await downloader.getInfo()
 
-            console.log(`YouTube video details: ${JSON.stringify(data)}`)
-
             const externalAdReply = {
                 title: data.title,
                 body: data.description,
@@ -75,7 +73,6 @@ export default class extends BaseCommand {
             userUsage[userId].count++
 
         } catch (e) {
-            console.error(e)
             M.reply('Song not found or an error occurred while processing your request.')
         }
     }
