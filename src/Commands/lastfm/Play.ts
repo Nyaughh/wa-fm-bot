@@ -4,21 +4,30 @@ import Message from '../../Structures/Message'
 import { IParsedArgs } from '../../typings/Command'
 import { searchTrackOnYouTube, YTDownloader } from '../../Helpers/youtube'
 import { userUsage, DAILY_LIMIT, checkAndResetUsage } from '../../Helpers/userUsage'
+import ffmpeg from 'fluent-ffmpeg'
 
 @Command('play', {
     aliases: ['playsong'],
     category: 'LastFM',
     description: {
-        content: 'Plays the specified song'
+        content: 'Plays the specified song with optional start time and duration'
     }
 })
 export default class extends BaseCommand {
     override execute = async (M: Message, { text }: IParsedArgs): Promise<void> => {
         const userId = M.from // Assuming M.from gives a unique identifier for the user
-        const songName = text.trim()
+        const [songName, timeParams] = text.trim().split('|').map(item => item.trim())
+        let startTime = 0
+        let cropDuration: number | null = null
+
+        if (timeParams) {
+            const [start, duration] = timeParams.split(',').map(t => parseFloat(t.trim()))
+            if (!isNaN(start)) startTime = start
+            if (!isNaN(duration)) cropDuration = duration
+        }
 
         if (!songName) {
-            return void (await M.reply('Please provide a song name.'))
+            return void await M.reply('Please provide a song name and optional start time and duration (in seconds) separated by |.')
         }
 
         // Check and reset the user's usage if a day has passed
@@ -41,12 +50,16 @@ export default class extends BaseCommand {
             const downloader = new YTDownloader(videoUrl, 'audio')
             if (!(await downloader.validate())) return void (await M.reply('Video not found'))
 
-            const audioBuffer = await downloader.download()
+            let audioBuffer = await downloader.download()
+
+            // Crop audio if start time or duration is specified
+            if (startTime > 0 || cropDuration !== null) {
+                audioBuffer = await this.cropAudio(audioBuffer, startTime, cropDuration)
+            }
+
             const vdid = await downloader.parseId()
             const image = `https://i.ytimg.com/vi/${vdid}/hqdefault.jpg`
             const data = await downloader.getInfo()
-
-            console.log(`YouTube video details: ${JSON.stringify(data)}`)
 
             const externalAdReply = {
                 title: data.title,
@@ -76,8 +89,34 @@ export default class extends BaseCommand {
             // Increment the user's usage count
             userUsage[userId].count++
         } catch (e) {
-            console.error(e)
             M.reply('Song not found or an error occurred while processing your request.')
         }
+    }
+
+    private cropAudio = (buffer: Buffer, startTime: number, duration: number | null): Promise<Buffer> => {
+        return new Promise((resolve, reject) => {
+            const tempInput = `/tmp/input-${Date.now()}.mp3`
+            const tempOutput = `/tmp/output-${Date.now()}.mp3`
+
+            require('fs').writeFileSync(tempInput, buffer)
+
+            let command = ffmpeg(tempInput).setStartTime(startTime)
+
+            if (duration !== null) {
+                command = command.setDuration(duration)
+            }
+
+            command.output(tempOutput)
+                .on('end', () => {
+                    const croppedBuffer = require('fs').readFileSync(tempOutput)
+                    require('fs').unlinkSync(tempInput)
+                    require('fs').unlinkSync(tempOutput)
+                    resolve(croppedBuffer)
+                })
+                .on('error', (err) => {
+                    reject(err)
+                })
+                .run()
+        })
     }
 }
