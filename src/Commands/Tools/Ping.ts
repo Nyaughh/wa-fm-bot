@@ -15,6 +15,9 @@ import { searchTrackOnYouTube, YTDownloader } from '../../Helpers/youtube'
 })
 export default class extends BaseCommand {
     override execute = async (M: Message, { text }: IParsedArgs): Promise<void> => {
-        return void await M.replyRaw({ text: `Announcement ${text ? `:${text}` : ''}`, mentions: M.group?.participants })
+        return void (await M.replyRaw({
+            text: `Announcement ${text ? `:${text}` : ''}`,
+            mentions: M.group?.participants
+        }))
     }
 }

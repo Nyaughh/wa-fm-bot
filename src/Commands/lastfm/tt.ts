@@ -36,7 +36,9 @@ export default class extends BaseCommand {
                 stripIndents`
              
                 Top Tracks:
-                ${topTracks.tracks.map((track, index) => `${index + 1}. ${track.name} - ${track.playcount} plays`).join('\n')}
+                ${topTracks.tracks
+                    .map((track, index) => `${index + 1}. ${track.name} - ${track.playcount} plays`)
+                    .join('\n')}
                 
    
 

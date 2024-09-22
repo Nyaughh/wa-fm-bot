@@ -34,10 +34,12 @@ export default class extends BaseCommand {
             const { name } = await this.client.lastfm.user.getInfo({ user: user.lastfm })
             const userTracks = await this.client.lastfm.user.getTopTracks({ user: user.lastfm, limit: 1000 })
 
-            const tracks = userTracks.tracks.filter(track => track.artist.name === artistName).sort((a, b) => b.playcount - a.playcount)
+            const tracks = userTracks.tracks
+                .filter((track) => track.artist.name === artistName)
+                .sort((a, b) => b.playcount - a.playcount)
 
             if (!tracks.length) return void (await M.reply(`You haven't listened to any songs by ${artistName}`))
-               
+
             await M.reply(stripIndents`
                 *${artistName}* songs known by *${name}*:
 
@@ -47,9 +49,6 @@ export default class extends BaseCommand {
 
                 ${url}
             `)
-            
-
-
         } catch (e) {
             console.error(e)
             return void (await M.reply(`Couldn't find the artist or fetch the data`))

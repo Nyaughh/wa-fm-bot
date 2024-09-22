@@ -12,7 +12,12 @@ import Client from './Client'
 import Group from './Group'
 
 class Message {
-    public supportedMediaMessages = new Array<MessageType>('imageMessage', 'videoMessage')
+    public supportedMediaMessages = new Array<MessageType>(
+        'imageMessage',
+        'videoMessage',
+        'documentMessage',
+        'documentWithCaptionMessage'
+    )
 
     public content: string
 
@@ -38,6 +43,10 @@ class Message {
         if (M.message?.ephemeralMessage) this.M.message = M.message.ephemeralMessage.message
         const { type } = this
         this.content = ((): string => {
+            const msg = this.M.message?.documentWithCaptionMessage
+                ? this.M.message.documentWithCaptionMessage.message
+                : this.M.message
+
             if (this.M.message?.interactiveResponseMessage?.nativeFlowResponseMessage?.paramsJson) {
                 const json = JSON.parse(this.M.message.interactiveResponseMessage.nativeFlowResponseMessage.paramsJson)
                 if (json.id) return json.id
@@ -46,11 +55,11 @@ class Message {
                 return this.M.message?.buttonsResponseMessage?.selectedButtonId || ''
             if (this.M.message?.listResponseMessage)
                 return this.M.message?.listResponseMessage?.singleSelectReply?.selectedRowId || ''
-            return this.M.message?.conversation
-                ? this.M.message.conversation
+            return msg?.conversation
+                ? msg.conversation
                 : this.supportedMediaMessages.includes(type)
                 ? this.supportedMediaMessages
-                      .map((type) => this.M.message?.[type as 'imageMessage' | 'videoMessage']?.caption)
+                      .map((type) => msg?.[type as 'imageMessage' | 'videoMessage' | 'documentMessage']?.caption)
                       .filter((caption) => caption)[0] || ''
                 : this.M.message?.extendedTextMessage?.text
                 ? this.M.message?.extendedTextMessage.text

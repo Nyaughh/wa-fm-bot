@@ -42,18 +42,34 @@ export default class extends BaseCommand {
                 lastfm: { $ne: null }
             }).lean()
 
-            const data = (await Promise.allSettled(users.map(async (u) => {
-                const trackInfo = await this.client.lastfm.track.getInfo({
-                    artist: currentTrack.artistName,
-                    track: currentTrack.trackName
-                }, { username: u.lastfm, sk: u.lastfm });
-                const { name: username } = await this.client.lastfm.user.getInfo({ user: u.lastfm });
-                return { username, plays: trackInfo.userplaycount ?? 0, jid: u.jid };
-            }))).map((r) => r.status === 'fulfilled' ? {
-                ...r.value,
-                waname: this.client.getContact(r.value.jid).username ?? ''
-            } : null).filter((r): r is { username: string, plays: number, jid: string, waname: string } => r !== null && r.plays > 0)
-            .sort((a, b) => b.plays - a.plays);
+            const data = (
+                await Promise.allSettled(
+                    users.map(async (u) => {
+                        const trackInfo = await this.client.lastfm.track.getInfo(
+                            {
+                                artist: currentTrack.artistName,
+                                track: currentTrack.trackName
+                            },
+                            { username: u.lastfm, sk: u.lastfm }
+                        )
+                        const { name: username } = await this.client.lastfm.user.getInfo({ user: u.lastfm })
+                        return { username, plays: trackInfo.userplaycount ?? 0, jid: u.jid }
+                    })
+                )
+            )
+                .map((r) =>
+                    r.status === 'fulfilled'
+                        ? {
+                              ...r.value,
+                              waname: this.client.getContact(r.value.jid).username ?? ''
+                          }
+                        : null
+                )
+                .filter(
+                    (r): r is { username: string; plays: number; jid: string; waname: string } =>
+                        r !== null && r.plays > 0
+                )
+                .sort((a, b) => b.plays - a.plays)
 
             await M.reply(
                 stripIndents`

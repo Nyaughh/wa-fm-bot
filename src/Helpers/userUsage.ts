@@ -1,6 +1,6 @@
 // UserUsageTracker.ts
 
-export const userUsage: { [userId: string]: { count: number, lastReset: number } } = {}
+export const userUsage: { [userId: string]: { count: number; lastReset: number } } = {}
 
 // Daily limit configuration
 export const DAILY_LIMIT = 50

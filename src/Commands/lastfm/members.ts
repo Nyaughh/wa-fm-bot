@@ -10,33 +10,34 @@ import { IParsedArgs } from '../../typings/Command'
         content: 'LastFM Group Members Info'
     }
 })
-
 export default class extends BaseCommand {
     override execute = async (M: Message, {}: IParsedArgs): Promise<void> => {
         try {
             const users = await this.client.database.User.find({
                 jid: { $in: M.group!.participants.map((p) => p) },
                 lastfm: { $ne: null }
-            }).lean();
+            }).lean()
 
             if (users.length === 0) {
                 await M.reply('No members are logged in.')
-                return;
+                return
             }
 
-            const memberList = await Promise.all(users.map(async user => {
-                const contact = this.client.getContact(user.jid);
-                const username = contact?.username ?? 'Unknown';
-                const lastfm = user.lastfm ?? 'Unknown';
-                const { name } = await this.client.lastfm.user.getInfo({ user: lastfm });
+            const memberList = await Promise.all(
+                users.map(async (user) => {
+                    const contact = this.client.getContact(user.jid)
+                    const username = contact?.username ?? 'Unknown'
+                    const lastfm = user.lastfm ?? 'Unknown'
+                    const { name } = await this.client.lastfm.user.getInfo({ user: lastfm })
 
-                return `- ${username} (${name})`;
-            }));
+                    return `- ${username} (${name})`
+                })
+            )
 
-            await M.reply(`Members who are logged in:\n${memberList.join('\n')}`);
+            await M.reply(`Members who are logged in:\n${memberList.join('\n')}`)
         } catch (error) {
-            console.error('Error fetching members:', error);
-            await M.reply('An error occurred while fetching the members.');
+            console.error('Error fetching members:', error)
+            await M.reply('An error occurred while fetching the members.')
         }
     }
 }

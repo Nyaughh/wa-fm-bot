@@ -41,7 +41,7 @@ export class YTDownloader {
 
     validate = async () => {
         const result = await youtubedl(this.url, { getId: true, quiet: true })
-        return !!result 
+        return !!result
     }
 
     getInfo = async () => {
@@ -51,9 +51,10 @@ export class YTDownloader {
 
     download = async () => {
         const filename = `${tmpdir()}/${Math.random().toString(36)}.${this.type === 'audio' ? 'mp3' : 'mp4'}`
-        const options = this.type === 'audio'
-            ? { format: 'bestaudio', output: filename }
-            : { format: 'bestvideo+bestaudio', output: filename }
+        const options =
+            this.type === 'audio'
+                ? { format: 'bestaudio', output: filename }
+                : { format: 'bestvideo+bestaudio', output: filename }
 
         await youtubedl(this.url, options)
 

@@ -36,18 +36,19 @@ export default class extends BaseCommand {
                 this.client.lastfm.user.getRecentTracks({ user: user, limit: 1 }),
                 this.client.lastfm.user.getWeeklyArtistChart({ user: user, limit: 5 }),
                 this.client.lastfm.user.getWeeklyTrackChart({ user: user, limit: 1 })
-            ]);
+            ])
 
-            const image = userData.image.find((i) => i.size === 'large') || userData.image.find((i) => i.size === 'extralarge')
+            const image =
+                userData.image.find((i) => i.size === 'large') || userData.image.find((i) => i.size === 'extralarge')
 
-            const totalScrobbles = userData.playcount;
-            const totalTracks = userData.trackCount;
-            const totalArtists = userData.artistCount;
-            const totalAlbums = userData.albumCount;
+            const totalScrobbles = userData.playcount
+            const totalTracks = userData.trackCount
+            const totalArtists = userData.artistCount
+            const totalAlbums = userData.albumCount
 
-            const averageScrobblesPerTrack = totalTracks ? Math.round(totalScrobbles / totalTracks) : 0;
-            const averageScrobblesPerArtist = totalArtists ? Math.round(totalScrobbles / totalArtists) : 0;
-            const averageScrobblesPerAlbum = totalAlbums ? Math.round(totalScrobbles / totalAlbums) : 0;
+            const averageScrobblesPerTrack = totalTracks ? Math.round(totalScrobbles / totalTracks) : 0
+            const averageScrobblesPerArtist = totalArtists ? Math.round(totalScrobbles / totalArtists) : 0
+            const averageScrobblesPerAlbum = totalAlbums ? Math.round(totalScrobbles / totalAlbums) : 0
 
             const text = stripIndents`
                 Username: ${userData.name}
@@ -59,9 +60,11 @@ export default class extends BaseCommand {
                 Average Scrobbles per Artist: ${averageScrobblesPerArtist}
                 Average Scrobbles per Album: ${averageScrobblesPerAlbum}
                 ${
-                    obsession?.tracks?.[0]?.name ? 
-                    `Current Obsession: ${obsession.tracks[0].name} by ${obsession.tracks[0].artist.name}` : ''}
-            `;
+                    obsession?.tracks?.[0]?.name
+                        ? `Current Obsession: ${obsession.tracks[0].name} by ${obsession.tracks[0].artist.name}`
+                        : ''
+                }
+            `
 
             if (image?.url) {
                 const imageData = await axios.get(image.url, { responseType: 'arraybuffer' })

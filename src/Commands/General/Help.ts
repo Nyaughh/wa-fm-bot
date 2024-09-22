@@ -51,7 +51,7 @@ export default class HelpCommand extends BaseCommand {
             .sort((element) =>
                 element.name.toLowerCase() === 'core' ? -1 : element.name.toLowerCase() === 'misc' ? 1 : 0
             )
-        
+
         // Define sections for the message
         const sections: proto.Message.ListMessage.ISection[] = []
 

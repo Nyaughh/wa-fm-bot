@@ -35,28 +35,56 @@ export default class extends BaseCommand {
             const users = await this.client.database.User.find({
                 jid: { $in: M.group!.participants.map((p) => p) },
                 lastfm: { $ne: null }
-            }).lean();
+            }).lean()
 
-            const data = (await Promise.allSettled(users.map(async (u) => {
-                const { stats } = await this.client.lastfm.artist.getInfo({ artist }, {
-                    username: u.lastfm, sk: u.lastfm
-                })
-                const { name: username } = await this.client.lastfm.user.getInfo({ user: u.lastfm })
-                return { username, plays: stats.userplaycount ?? 0, jid: u.jid }
-            }))).map((r) => r.status === 'fulfilled' ? {
-                ...r.value,
-                waname: this.client.getContact(r.value.jid).username ?? ''
-            } : null).filter((r): r is { username: string, plays: number, jid: string, waname: string } => r !== null && r.plays > 0)
-            .sort((a, b) => b.plays - a.plays);
+            const data = (
+                await Promise.allSettled(
+                    users.map(async (u) => {
+                        const { stats } = await this.client.lastfm.artist.getInfo(
+                            { artist },
+                            {
+                                username: u.lastfm,
+                                sk: u.lastfm
+                            }
+                        )
+                        const { name: username } = await this.client.lastfm.user.getInfo({ user: u.lastfm })
+                        return { username, plays: stats.userplaycount ?? 0, jid: u.jid }
+                    })
+                )
+            )
+                .map((r) =>
+                    r.status === 'fulfilled'
+                        ? {
+                              ...r.value,
+                              waname: this.client.getContact(r.value.jid).username ?? ''
+                          }
+                        : null
+                )
+                .filter(
+                    (r): r is { username: string; plays: number; jid: string; waname: string } =>
+                        r !== null && r.plays > 0
+                )
+                .sort((a, b) => b.plays - a.plays)
 
-            await M.reply(stripIndents`
+            await M.reply(
+                stripIndents`
                 *${artistName}* in ${M.group!.title}
 
-                ${data.map((d, i) => `${i + 1}. ${d.username} ${!d.waname || (d.waname === 'User') ? '' : `(${d?.waname})`}- ${d.plays} plays`).join('\n')}
+                ${data
+                    .map(
+                        (d, i) =>
+                            `${i + 1}. ${d.username} ${!d.waname || d.waname === 'User' ? '' : `(${d?.waname})`}- ${
+                                d.plays
+                            } plays`
+                    )
+                    .join('\n')}
 
                 ${url}
-            `, 'text', undefined, undefined)
-
+            `,
+                'text',
+                undefined,
+                undefined
+            )
         } catch (e) {
             console.log(e)
             return void (await M.reply(`Couldn't find the artist`))

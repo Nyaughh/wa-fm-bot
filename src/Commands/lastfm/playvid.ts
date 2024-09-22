@@ -13,52 +13,53 @@ import { searchTrackOnYouTube, YTDownloader } from '../../Helpers/youtube'
 })
 export default class extends BaseCommand {
     override execute = async (M: Message, { text }: IParsedArgs): Promise<void> => {
-        let videoUrl: string;
+        let videoUrl: string
 
         if (M.urls && M.urls.length > 0) {
-            videoUrl = M.urls[0];
+            videoUrl = M.urls[0]
         } else {
-            const videoName = text.trim();
+            const videoName = text.trim()
 
             if (!videoName) {
-                return void await M.reply('Please provide a video name or URL.');
+                return void (await M.reply('Please provide a video name or URL.'))
             }
 
             try {
-                const video = await searchTrackOnYouTube(videoName);
+                const video = await searchTrackOnYouTube(videoName)
                 if (!video.id || !video.id.videoId) {
-                    throw new Error('Video ID is undefined');
+                    throw new Error('Video ID is undefined')
                 }
-                videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`;
+                videoUrl = `https://www.youtube.com/watch?v=${video.id.videoId}`
             } catch (e) {
-                console.error('Error searching for video:', e);
-                return void await M.reply('Video not found or an error occurred while searching.');
+                console.error('Error searching for video:', e)
+                return void (await M.reply('Video not found or an error occurred while searching.'))
             }
         }
 
         try {
-            const downloader = new YTDownloader(videoUrl, 'video');
+            const downloader = new YTDownloader(videoUrl, 'video')
 
             if (!(await downloader.validate())) {
-                return void await M.reply('Video not found or invalid URL.');
+                return void (await M.reply('Video not found or invalid URL.'))
             }
 
-            const videoInfo = await downloader.getInfo();
-            if (videoInfo.duration > 600) { // Example limit: 10 minutes
-                return void await M.reply('Video is too long. Please provide a shorter video.');
+            const videoInfo = await downloader.getInfo()
+            if (videoInfo.duration > 600) {
+                // Example limit: 10 minutes
+                return void (await M.reply('Video is too long. Please provide a shorter video.'))
             }
 
-            const videoBuffer = await downloader.download();
+            const videoBuffer = await downloader.download()
 
-            if (videoBuffer.length > 50 * 1024 * 1024) { // Example limit: 50MB
-                return void await M.reply('Video file is too large to send.');
+            if (videoBuffer.length > 50 * 1024 * 1024) {
+                // Example limit: 50MB
+                return void (await M.reply('Video file is too large to send.'))
             }
 
-            await M.replyRaw({ video: videoBuffer });
-
+            await M.replyRaw({ video: videoBuffer })
         } catch (e) {
-            console.error('Error occurred in playvideo command:', e);
-            await M.reply('An error occurred while processing your request.');
+            console.error('Error occurred in playvideo command:', e)
+            await M.reply('An error occurred while processing your request.')
         }
     }
 }

@@ -35,7 +35,7 @@ export default class extends BaseCommand {
 
             // Create a map of artist names to their tracks
             const artistTracksMap = new Map<string, string[]>()
-            topTracks.tracks.forEach(track => {
+            topTracks.tracks.forEach((track) => {
                 const artistName = track.artist.name
                 const trackEntry = `${track.name} - ${track.playcount} plays`
                 if (!artistTracksMap.has(artistName)) {
@@ -45,18 +45,20 @@ export default class extends BaseCommand {
             })
 
             // Extract top artists' tracks
-            const response = topArtists.artists.map((artist, index) => {
-                const artistName = artist.name
-                const tracks = artistTracksMap.get(artistName) || []
-                const formattedTracks = tracks.map(track => `  - ${track}`).join('\n')
-                return `${index + 1}. ${artistName} - ${artist.playcount} plays\n${formattedTracks}`
-            }).join('\n\n')
+            const response = topArtists.artists
+                .map((artist, index) => {
+                    const artistName = artist.name
+                    const tracks = artistTracksMap.get(artistName) || []
+                    const formattedTracks = tracks.map((track) => `  - ${track}`).join('\n')
+                    return `${index + 1}. ${artistName} - ${artist.playcount} plays\n${formattedTracks}`
+                })
+                .join('\n\n')
 
             // Extract tracks with artists not in the top artists list
-            const topArtistNames = new Set(topArtists.artists.map(artist => artist.name))
+            const topArtistNames = new Set(topArtists.artists.map((artist) => artist.name))
             const otherTracks = topTracks.tracks
-                .filter(track => !topArtistNames.has(track.artist.name))
-                .map(track => `  - ${track.artist.name} - ${track.name} - ${track.playcount} plays`)
+                .filter((track) => !topArtistNames.has(track.artist.name))
+                .map((track) => `  - ${track.artist.name} - ${track.name} - ${track.playcount} plays`)
                 .join('\n')
 
             const finalResponse = stripIndents`

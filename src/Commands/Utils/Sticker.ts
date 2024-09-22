@@ -19,9 +19,9 @@ import { IParsedArgs } from '../../typings/Command'
 })
 export default class extends BaseCommand {
     override execute = async (M: Message, { flags, text }: IParsedArgs): Promise<void> => {
-        const media = ['imageMessage', 'videoMessage'].includes(M.type)
+        const media = ['imageMessage', 'videoMessage', 'documentMessage'].includes(M.type)
             ? M
-            : M.quoted?.message.videoMessage ?? M.quoted?.message.imageMessage
+            : M.quoted?.message.videoMessage ?? M.quoted?.message.imageMessage ?? M.quoted?.message.documentMessage
             ? M.quoted.message
             : M.urls[0] ?? null
         if (!media) return void (await M.reply('No media found!'))

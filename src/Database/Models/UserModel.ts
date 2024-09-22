@@ -10,6 +10,12 @@ class Users {
 
     @prop({ type: String })
     lastfm?: string
+
+    @prop({ type: Number })
+    importedToday?: number
+
+    @prop({ type: Date })
+    lastImport?: Date
 }
 
 export type User = Users & Document

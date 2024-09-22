@@ -36,7 +36,9 @@ export default class extends BaseCommand {
                 stripIndents`
              
                 Top Artists:
-                ${topArtists.artists.map((artist, index) => `${index + 1}. ${artist.name} - ${artist.playcount} plays`).join('\n')}
+                ${topArtists.artists
+                    .map((artist, index) => `${index + 1}. ${artist.name} - ${artist.playcount} plays`)
+                    .join('\n')}
                 
    
 
