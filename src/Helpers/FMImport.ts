@@ -24,6 +24,11 @@ type SpotifySong = {
     skipped: string | null
     offline: boolean
     offline_timestamp: number
+} | {
+    track: string
+    artist: string
+    album: string
+    timestamp: number
 }
 
 type SpotifyHistory = SpotifySong[]
@@ -111,14 +116,23 @@ export class SpotifyImporter extends EventEmitter {
         const remainingScrobbles: ScrobbleObject[] = []
         let importedCount = 0
         const maxImportCount = 2000 - (user.importedToday || 0)
-
         for (const song of this.data) {
             if (await this.isTrackScrobbleable(user.lastfm!, song)) {
-                const scrobble = {
-                    artist: song.master_metadata_album_artist_name,
-                    track: song.master_metadata_track_name,
-                    timestamp: parseInt((Date.now() / 1000).toFixed())
-                }
+                const scrobble = (() => {
+                    if ('master_metadata_album_artist_name' in song) {
+                        return {
+                            artist: song.master_metadata_album_artist_name,
+                            track: song.master_metadata_track_name,
+                            timestamp: parseInt((Date.now() / 1000).toFixed())
+                        }
+                    } else {
+                        return {
+                            artist: song.artist,
+                            track: song.track,
+                            timestamp: song.timestamp
+                        }
+                    }
+                })()
 
                 if (importedCount < maxImportCount) {
                     scrobbles.push(scrobble)
