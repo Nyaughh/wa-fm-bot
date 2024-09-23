@@ -77,10 +77,10 @@ export default class extends BaseCommand {
                 if (!eligible) {
                     this.importers.delete(M.sender.jid)
                     return void M.reply('You are not eligible to import scrobbles at this time.')
-                }
+                }   
 
                 const canImport = await importer.howManyCanYouImportToday()
-                const years = [...new Set(importer.data.map((song) => new Date(song.ts).getFullYear()))].sort(
+                const years = [...new Set(importer.data.map((song) => new Date('timestamp' in song ? song.timestamp : song.ts).getFullYear()))].sort(
                     (a, b) => b - a
                 )
 

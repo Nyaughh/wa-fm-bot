@@ -129,7 +129,7 @@ export class SpotifyImporter extends EventEmitter {
                         return {
                             artist: song.artist,
                             track: song.track,
-                            timestamp: song.timestamp
+                            timestamp: parseInt((Date.now() * 1000).toFixed())
                         }
                     }
                 })()
