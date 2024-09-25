@@ -113,9 +113,9 @@ export class SpotifyImporter extends EventEmitter {
         from = from ? from : new Date(0)
 
         const scrobbles: ScrobbleObject[] = []
-        const remainingScrobbles: ScrobbleObject[] = []
         let importedCount = 0
         const maxImportCount = 2000 - (user.importedToday || 0)
+        const songs = this.data 
         for (const song of this.data) {
             if (await this.isTrackScrobbleable(user.lastfm!, song)) {
                 const scrobble = (() => {
@@ -136,9 +136,10 @@ export class SpotifyImporter extends EventEmitter {
 
                 if (importedCount < maxImportCount) {
                     scrobbles.push(scrobble)
+                    songs.splice(songs.indexOf(song), 1)
                     importedCount++
                 } else {
-                    remainingScrobbles.push(scrobble)
+
                 }
             }
         }
@@ -164,7 +165,7 @@ export class SpotifyImporter extends EventEmitter {
         }
         user.lastImport = now
         await user.save()
-        this.emit('imported', actualImportedCount, remainingScrobbles)
+        this.emit('imported', actualImportedCount, songs)
     }
 
     public async getImportedCount() {
