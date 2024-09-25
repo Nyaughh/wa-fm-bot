@@ -13,8 +13,8 @@ import Message from '../../Structures/Message';
 })
 export default class extends BaseCommand {
     override execute = async (M: Message): Promise<void> => {
-        const quotedMessage = M.quoted as Message | undefined;
-        if (!quotedMessage || quotedMessage.type !== 'imageMessage') {
+        const quotedMessage = M.quoted?.message;
+        if (!quotedMessage || !('imageMessage' in quotedMessage)) {
             return void await M.reply('Please quote an image to set as the group profile picture.');
         }
 
