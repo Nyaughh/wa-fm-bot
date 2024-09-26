@@ -5,7 +5,7 @@ import { IParsedArgs } from '../../typings/Command'
 import { searchTrackOnYouTube, YTDownloader } from '../../Helpers/youtube'
 
 @Command('ping', {
-    aliases: ['night, morning'],
+    aliases: ['night', 'morning'],
     category: 'tools',
     admin: true,
     group: true,
