@@ -5,22 +5,21 @@ import { IParsedArgs } from '../../typings/Command'
 import { stripIndents } from 'common-tags'
 @Command('login', {
     aliases: ['l'],
-    dm: true,
     category: 'LastFM',
     description: {
-        content: `Type /login in the DM to get started.
-
-Login process:
-
-- You'll be given a link asking you to authorise, when you use /login.
-- Make a last.fm account if you don't already have one, and authorise.
-- Once you're done authorising, write 'Finish'.
-- You should see a confirmation message saying 'Successfully logged in as username'
-
-Tracking Process:
-
-- If you use Spotify, connect your Spotify account by https://www.last.fm/settings/applications.
-- If you use YouTube, download Pano Scrobbler https://play.google.com/store/apps/details?id=com.arn.scrobble.`
+        content:  stripIndents`
+        Login process:
+        
+        - You'll be given a link asking you to authorise, when you use /login.
+        - Make a last.fm account if you don't already have one, and authorise.
+        - Once you're done authorising, write 'Finish'.
+        - You should see a confirmation message saying 'Successfully logged in as username'
+        
+        Tracking Process:
+        
+        - If you use Spotify, connect your Spotify account by https://www.last.fm/settings/applications.
+        - If you use YouTube, download Pano Scrobbler https://play.google.com/store/apps/details?id=com.arn.scrobble.`
+        
     }
 })
 export default class extends BaseCommand {
@@ -31,12 +30,12 @@ export default class extends BaseCommand {
         }
     > = new Map()
 
-    override execute = async (M: Message, { flags }: IParsedArgs): Promise<void> => {
+    override execute = async (M: Message, { text }: IParsedArgs): Promise<void> => {
         const user = await this.client.database.User.findOne({ jid: M.sender.jid }).lean()
 
         if (user?.lastfm) return void (await M.reply(`You're already logged in.`))
         const has = this.currentlyLoggingIn.has(M.sender.jid)
-        if ('done' in flags) {
+        if (text === 'done') {
             if (!has) return void (await M.reply(`You're not currently logging in.`))
             const session = await this.client.lastfm.auth.getSession(this.currentlyLoggingIn.get(M.sender.jid)!.token)
             console.log(session)
@@ -51,7 +50,7 @@ export default class extends BaseCommand {
             return
         }
 
-        if ('cancel' in flags) {
+        if (text === 'cancel') {
             if (!has) return void (await M.reply(`You're not currently logging in.`))
             await M.reply(`Cancelled the login process.`)
             this.currentlyLoggingIn.delete(M.sender.jid)
@@ -60,40 +59,21 @@ export default class extends BaseCommand {
 
         const token = await this.client.lastfm.auth.getToken()
         this.currentlyLoggingIn.set(M.sender.jid, { token })
-        await M.replyWithButtons(
-            stripIndents`
-                Authenticate with LastFM using this link
-                
-                https://www.last.fm/api/auth?api_key=${process.env.LASTFM_API_KEY}&token=${token}
 
-                Use the listed actions to continue.
-            `,
-            'text',
-            undefined,
-            getUrl(token),
-            undefined,
-            undefined,
-            {
-                buttonText: 'Actions',
-                headerText: 'Login',
-                footerText: 'Powered by LastFM',
-                sections: [
-                    {
-                        title: 'Continue Authentication',
-                        rows: [
-                            {
-                                title: 'Finish',
-                                id: `${this.client.config.prefix}login --done`
-                            },
-                            {
-                                title: 'Cancel',
-                                id: `${this.client.config.prefix}login --cancel`
-                            }
-                        ]
-                    }
-                ]
-            }
-        )
+        const loginMessage = stripIndents`
+            Authenticate with LastFM using this link:
+            
+            ${getUrl(token)}
+
+            After authorizing, send "/login done" to complete the process.
+        `
+
+        if (!M.group) {
+            await M.reply(loginMessage)
+        } else {
+            await this.client.sendMessage(M.sender.jid, { text: loginMessage })
+            await M.reply('I\'ve sent the login link to your DM.')
+        }
     }
 }
 
