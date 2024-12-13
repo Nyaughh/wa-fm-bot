@@ -54,13 +54,17 @@ export class YTDownloader {
         const options =
             this.type === 'audio'
                 ? { format: 'bestaudio', output: filename }
-                : { format: 'bestvideo+bestaudio', output: filename }
+                : { format: 'bestvideo[height<=720]+bestaudio/best[height<=720]', output: filename, mergeOutputFormat: 'mp4' }
 
-        await youtubedl(this.url, options)
-
-        const buffer = await readFile(filename)
-        await unlink(filename)
-        return buffer
+        try {
+            await youtubedl(this.url, options)
+            const buffer = await readFile(filename)
+            await unlink(filename)
+            return buffer
+        } catch (error) {
+            console.error('Error downloading video:', error)
+            throw new Error('Failed to download video: ' + (error as Error).message)
+        }
     }
 
     parseId = (): string => {

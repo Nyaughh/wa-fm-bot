@@ -37,8 +37,29 @@ export default class extends BaseCommand {
             return void M.reply(
                 stripIndents`
                 You have ${canImport} imports left for today.
-                Use --file to provide a Spotify history JSON file.
-                Use --check to check import eligibility.
+
+                Available commands:
+                
+                1. Check import eligibility:
+                \`\`\`
+                ${this.client.config.prefix}import --check
+                \`\`\`
+
+                2. Upload Spotify history file:
+                \`\`\`
+                ${this.client.config.prefix}import --file
+                \`\`\`
+                (Send this command with a Spotify JSON file attached)
+
+                3. Import all songs after uploading:
+                \`\`\`
+                ${this.client.config.prefix}import --confirm
+                \`\`\`
+
+                4. Import songs from specific dates:
+                \`\`\`
+                ${this.client.config.prefix}import --confirm --from=2023-01-01 --to=2023-12-31
+                \`\`\`
                 `
             )
         }
@@ -72,54 +93,39 @@ export default class extends BaseCommand {
             const importer = new SpotifyImporter(this.client.database, M.sender.jid, this.client.lastfm, spotifyData)
             this.importers.set(M.sender.jid, importer)
 
-            importer.on('init', async () => {
-                const eligible = await importer.isEligible()
-                if (!eligible) {
-                    this.importers.delete(M.sender.jid)
-                    return void M.reply('You are not eligible to import scrobbles at this time.')
-                }   
+            const eligible = await importer.isEligible()
+            if (!eligible) {
+                this.importers.delete(M.sender.jid)
+                return void M.reply('You are not eligible to import scrobbles at this time.')
+            }   
 
-                const canImport = await importer.howManyCanYouImportToday()
-                const years = [...new Set(importer.data.map((song) => new Date('timestamp' in song ? song.timestamp : song.ts).getFullYear()))].sort(
-                    (a, b) => b - a
-                )
+            const canImport = await importer.howManyCanYouImportToday()
+            const years = [...new Set(importer.data.map((song) => new Date('timestamp' in song ? song.timestamp : song.ts).getFullYear()))].sort(
+                (a, b) => b - a
+            )
 
-                await M.replyWithButtons(
-                    stripIndents`
-                    File received and processed. File size: ${fileSizeInMB} MB
-                    You can import up to ${canImport} scrobbles today.
-                    Choose an import option:
-                    `,
-                    'text',
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    {
-                        headerText: '*Spotify Scrobble Import*',
-                        footerText: 'Powered by LastFM',
-                        buttonText: 'Options',
-                        sections: [
-                            {
-                                title: 'Import Options',
-                                rows: [
-                                    {
-                                        title: 'Import All',
-                                        id: `${this.client.config.prefix}import --confirm`
-                                    },
-                                    ...years.map((year) => ({
-                                        title: `Import ${year}`,
-                                        id: `${this.client.config.prefix}import --confirm --from=${year}-01-01 --to=${year}-12-31`
-                                    }))
-                                ]
-                            }
-                        ]
-                    }
-                )
-            })
+            return void M.reply(
+                stripIndents`
+                File received and processed. File size: ${fileSizeInMB} MB
+                You can import up to ${canImport} scrobbles today.
+                Available years: ${years.join(', ')}
+                
+                To import all songs, use:
+                \`\`\`
+                ${this.client.config.prefix}import --confirm
+                \`\`\`
 
-            importer.emit('init')
-            return
+                To import songs from a specific year, use:
+                \`\`\`
+                ${this.client.config.prefix}import --confirm --from=YYYY-01-01 --to=YYYY-12-31
+                \`\`\`
+
+                Example for year ${years[0]}:
+                \`\`\`
+                ${this.client.config.prefix}import --confirm --from=${years[0]}-01-01 --to=${years[0]}-12-31
+                \`\`\`
+                `
+            )
         }
 
         if ('confirm' in flags) {
@@ -138,7 +144,6 @@ export default class extends BaseCommand {
             })
 
             importer.on('batchImported', (importedCount, actualImportedCount, totalScrobbles) => {
-                // only send messages for 250, 500, 750, 1000, 1250, 1500, 1750, 2000
                 if (actualImportedCount % 250 === 0) {
                     M.reply(`Imported ${importedCount} songs. Total imported: ${actualImportedCount}/${totalScrobbles}`)
                 }
@@ -150,10 +155,9 @@ export default class extends BaseCommand {
                     response += `\n${remainingScrobbles.length} songs couldn't be imported due to daily limit.`
                 }
 
-                // Show the list of imported songs
                 if (importedCount > 0) {
                     response += '\n\nImported songs:'
-                    const songList = importer.getImportedSongs().slice(0, 10) // Limit to 10 songs to avoid long messages
+                    const songList = importer.getImportedSongs().slice(0, 10)
                     songList.forEach((song, index) => {
                         response += `\n${index + 1}. ${song.artist} - ${song.track}`
                     })
@@ -164,7 +168,6 @@ export default class extends BaseCommand {
 
                 await M.reply(response)
 
-                // Send remaining songs as JSON
                 if (remainingScrobbles.length > 0) {
                     const remainingJson = JSON.stringify(remainingScrobbles, null, 2)
                     const buffer = Buffer.from(remainingJson, 'utf-8')

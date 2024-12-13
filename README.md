@@ -96,8 +96,6 @@ Once the bot is running, you can interact with it through WhatsApp using the fol
 -   `!logout` - Log out from your Last.fm account.
 -   `!members` - Get a list of group members logged in.
 -   `!recents` - Get your recent tracks.
--   `!time` - Get the amount of time spent listening.
--   `!wac` - Get your weekly album chart.
 -   `!whoknowsas [artist name]` - Get the top listeners for a specific artist.
 -   `!whoknows [artist]` - Get the top listeners for a specific artist.
 -   `!whoknowscurrenttrack` - Get the top listeners for the currently playing track.
