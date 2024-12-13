@@ -1,4 +1,4 @@
-import { AnthropicVertex } from '@anthropic-ai/vertex-sdk'
+import { Anthropic } from '@anthropic-ai/sdk'
 import { BaseCommand } from '../../Structures/Command/BaseCommand'
 import { Command } from '../../Structures/Command/Command'
 import Message from '../../Structures/Message'
@@ -6,11 +6,8 @@ import axios from 'axios'
 import { ContentBlock, ToolResultBlockParam, ToolUseBlockParam } from '@anthropic-ai/sdk/resources'
 import { GoogleAuth } from 'google-auth-library'
 
-const anthropic = new AnthropicVertex({
-    googleAuth: new GoogleAuth({
-        credentials: JSON.parse(process.env.GOOGLE_AUTH_CREDENTIALS as string),
-        scopes: ['https://www.googleapis.com/auth/cloud-platform']
-    })
+const anthropic = new Anthropic({
+    apiKey: process.env.ANTHROPIC_API_KEY
 })
 
 const groupConversationHistory: { [groupJid: string]: { systemMessage: string; messages: any[] } } = {}

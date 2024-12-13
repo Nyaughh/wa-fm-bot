@@ -22,6 +22,7 @@ import { BAILEYS_METHODS } from '../Constants'
 import { admins } from '../orion'
 import { ContactX } from '../Database'
 import LastFM from 'lastfm-typed'
+import qrcode from 'qrcode-terminal'
 
 export type DownloadableMessage = Parameters<typeof downloadContentFromMessage>[0]
 export type Baileys = ReturnType<typeof create>
@@ -49,6 +50,9 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
     public lastfm = new LastFM(process.env.LASTFM_API_KEY as string, {
         apiSecret: process.env.LASTFM_API_SECRET as string
     })
+    private reconnectAttempts = 0
+    private maxReconnectAttempts = 5
+
     constructor(
         public config: IClientConfig,
         public database: Database,
@@ -216,6 +220,11 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
     }
 
     public connect = async (): Promise<void> => {
+        if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+            console.log('Max reconnection attempts reached. Please restart the application.')
+            process.exit(1)
+        }
+
         this.sock = create(this.sconfig as SocketConfig)
 
         this.eventStore.forEach((value, key) => {
@@ -227,17 +236,30 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
             if (events['connection.update']) {
                 const update = events['connection.update']
                 const { connection, lastDisconnect, qr } = update
-                if (qr) {
+
+                if (connection === 'close') {
+                    const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut
+                    if (shouldReconnect) {
+                        this.reconnectAttempts++
+                        console.log(`Reconnecting... Attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts}`)
+                        setTimeout(() => this.connect(), 5000)
+                    } else {
+                        console.log('Session logged out. Please scan the QR code to reconnect.')
+                        this.reconnectAttempts = 0
+                        setTimeout(() => this.connect(), 5000)
+                    }
+                } else if (connection === 'connecting') {
+                    console.log('Connecting to WhatsApp...')
+                } else if (qr) {
                     this.qr = qr
                     this.emit('qr', qr)
+                    console.log('\nScan this QR code to login:')
+                    qrcode.generate(qr, { small: true })
+                } else if (connection === 'open') {
+                    this.reconnectAttempts = 0
+                    console.log('Connected to WhatsApp!')
+                    return void this.emit('open')
                 }
-                if (connection === 'close') {
-                    if ((lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut)
-                        return void this.connect()
-                    process.exit(1)
-                }
-                //console.log(update)
-                if (connection === 'open') return void this.emit('open')
             }
 
             if (events['messages.upsert']) {
