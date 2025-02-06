@@ -30,6 +30,7 @@ export type Baileys = ReturnType<typeof create>
 export type BailKeys = keyof Baileys
 // see what i did there?
 
+
 export default class Client extends EventEmitter implements Partial<Baileys> {
     public type = 'md' as const
 
@@ -62,9 +63,9 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
         super()
 
         for (const method of BAILEYS_METHODS) {
-            this[method] = (() => {
+            this[method as keyof this] = ((() => {
                 throw new Error(`${method} cannot be called without connecting`)
-            }) as Baileys[typeof method]
+            }) as unknown) as this[keyof this]
         }
 
         this.on('open', async () => {
@@ -206,12 +207,18 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
 
     public on = (...args: Parameters<EventEmitter['on']>): this => {
         this.eventStore.set(args[0], args[1])
-        this.ev?.on(args[0] as keyof BaileysEventMap, args[1])
+        if (this.sock) {
+            console.log(this.sock.ev)
+            this.ev?.on(args[0] as keyof BaileysEventMap, args[1])
+        }
         return this
+
     }
 
     public emit = (...args: Parameters<EventEmitter['emit']>): boolean => {
-        this.ev?.emit(args[0] as keyof BaileysEventMap, args[1])
+        if (this.sock) {
+            this.ev?.emit(args[0] as keyof BaileysEventMap, args[1])
+        }
         return true
     }
 
@@ -271,7 +278,7 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
         })
 
         for (const key in this.sock) {
-            this[key as keyof this] = this.sock[key as keyof Baileys]
+            this[key as keyof this] = this.sock[key as keyof Baileys] as this[keyof this]
         }
     }
 
@@ -316,25 +323,80 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
     public fetchBlocklist!: Baileys['fetchBlocklist']
     public fetchPrivacySettings!: Baileys['fetchPrivacySettings']
     public fetchStatus!: Baileys['fetchStatus']
+    public fetchDisappearingDuration!: Baileys['fetchDisappearingDuration']
     public updateProfilePicture!: Baileys['updateProfilePicture']
+    public removeProfilePicture!: Baileys['removeProfilePicture']
+    public updateProfileStatus!: Baileys['updateProfileStatus']
+    public updateProfileName!: Baileys['updateProfileName']
     public updateBlockStatus!: Baileys['updateBlockStatus']
+    public updateCallPrivacy!: Baileys['updateCallPrivacy']
+    public updateLastSeenPrivacy!: Baileys['updateLastSeenPrivacy']
+    public updateOnlinePrivacy!: Baileys['updateOnlinePrivacy']
+    public updateProfilePicturePrivacy!: Baileys['updateProfilePicturePrivacy']
+    public updateStatusPrivacy!: Baileys['updateStatusPrivacy']
+    public updateReadReceiptsPrivacy!: Baileys['updateReadReceiptsPrivacy']
+    public updateGroupsAddPrivacy!: Baileys['updateGroupsAddPrivacy']
+    public updateDefaultDisappearingMode!: Baileys['updateDefaultDisappearingMode']
+    public getBusinessProfile!: Baileys['getBusinessProfile']
     public resyncAppState!: Baileys['resyncAppState']
     public chatModify!: Baileys['chatModify']
+    public cleanDirtyBits!: Baileys['cleanDirtyBits']
+    public addLabel!: Baileys['addLabel']
+    public addChatLabel!: Baileys['addChatLabel']
+    public removeChatLabel!: Baileys['removeChatLabel']
+    public addMessageLabel!: Baileys['addMessageLabel']
+    public removeMessageLabel!: Baileys['removeMessageLabel']
+    public star!: Baileys['star']
+    public executeUSyncQuery!: Baileys['executeUSyncQuery']
     public assertSessions!: Baileys['assertSessions']
     public relayMessage!: Baileys['relayMessage']
     public refreshMediaConn!: Baileys['refreshMediaConn']
+    public waUploadToServer!: Baileys['waUploadToServer']
     public sendMessage!: Baileys['sendMessage']
     public groupMetadata!: Baileys['groupMetadata']
     public groupCreate!: Baileys['groupCreate']
     public groupLeave!: Baileys['groupLeave']
     public groupUpdateSubject!: Baileys['groupUpdateSubject']
+    public groupRequestParticipantsList!: Baileys['groupRequestParticipantsList']
+    public groupRequestParticipantsUpdate!: Baileys['groupRequestParticipantsUpdate']
     public groupParticipantsUpdate!: Baileys['groupParticipantsUpdate']
+    public groupUpdateDescription!: Baileys['groupUpdateDescription']
     public groupInviteCode!: Baileys['groupInviteCode']
+    public groupRevokeInvite!: Baileys['groupRevokeInvite']
+    public groupAcceptInvite!: Baileys['groupAcceptInvite']
+    public groupRevokeInviteV4!: Baileys['groupRevokeInviteV4']
+    public groupAcceptInviteV4!: Baileys['groupAcceptInviteV4']
+    public groupGetInviteInfo!: Baileys['groupGetInviteInfo']
     public groupToggleEphemeral!: Baileys['groupToggleEphemeral']
     public groupSettingUpdate!: Baileys['groupSettingUpdate']
-    public ws: Baileys['ws']
-    public ev?: Baileys['ev']
+    public groupMemberAddMode!: Baileys['groupMemberAddMode']
+    public groupJoinApprovalMode!: Baileys['groupJoinApprovalMode']
+    public groupFetchAllParticipating!: Baileys['groupFetchAllParticipating']
+    public processingMutex!: Baileys['processingMutex']
+    public upsertMessage!: Baileys['upsertMessage']
+    public getOrderDetails!: Baileys['getOrderDetails']
+    public getCatalog!: Baileys['getCatalog']
+    public getCollections!: Baileys['getCollections']
+    public productCreate!: Baileys['productCreate']
+    public productDelete!: Baileys['productDelete']
+    public productUpdate!: Baileys['productUpdate']
+    public sendMessageAck!: Baileys['sendMessageAck']
+    public sendRetryRequest!: Baileys['sendRetryRequest']
+    public rejectCall!: Baileys['rejectCall']
+    public fetchMessageHistory!: Baileys['fetchMessageHistory']
+    public requestPlaceholderResend!: Baileys['requestPlaceholderResend']
+    public getPrivacyTokens!: Baileys['getPrivacyTokens']
+    public sendReceipt!: Baileys['sendReceipt']
+    public sendReceipts!: Baileys['sendReceipts']
+    public readMessages!: Baileys['readMessages']
+    public sendPeerDataOperationMessage!: Baileys['sendPeerDataOperationMessage']
+    public createParticipantNodes!: Baileys['createParticipantNodes']
+    public getUSyncDevices!: Baileys['getUSyncDevices']
+    public updateMediaMessage!: Baileys['updateMediaMessage']
+    public ws!: Baileys['ws']
+    public ev!: Baileys['ev']
     public authState!: Baileys['authState']
+    public signalRepository!: Baileys['signalRepository']
     public user!: Baileys['user']
     public generateMessageTag!: Baileys['generateMessageTag']
     public query!: Baileys['query']
@@ -344,14 +406,10 @@ export default class Client extends EventEmitter implements Partial<Baileys> {
     public sendNode!: Baileys['sendNode']
     public logout!: Baileys['logout']
     public end!: Baileys['end']
+    public onUnexpectedError!: Baileys['onUnexpectedError']
+    public uploadPreKeys!: Baileys['uploadPreKeys']
+    public uploadPreKeysToServerIfRequired!: Baileys['uploadPreKeysToServerIfRequired']
+    public requestPairingCode!: Baileys['requestPairingCode']
     public waitForConnectionUpdate!: Baileys['waitForConnectionUpdate']
-    public groupFetchAllParticipating!: Baileys['groupFetchAllParticipating']
-    public sendMessageAck!: Baileys['sendMessageAck']
-    public sendRetryRequest!: Baileys['sendRetryRequest']
-    public getBusinessProfile!: Baileys['getBusinessProfile']
-    public groupUpdateDescription!: Baileys['groupUpdateDescription']
-    public groupAcceptInvite!: Baileys['groupAcceptInvite']
-    public sendReceipt!: Baileys['sendReceipt']
-    public waUploadToServer!: Baileys['waUploadToServer']
-    public groupRevokeInvite!: Baileys['groupRevokeInvite']
+    public sendWAMBuffer!: Baileys['sendWAMBuffer']
 }

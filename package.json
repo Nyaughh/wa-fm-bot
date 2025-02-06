@@ -53,7 +53,7 @@
     "@settlin/collage": "^2.0.1",
     "@spotify/web-api-ts-sdk": "^1.2.0",
     "@typegoose/typegoose": "^9.7.1",
-    "@whiskeysockets/baileys": "^6.7.2",
+    "@whiskeysockets/baileys": "^6.7.12",
     "aromanize": "^0.1.5",
     "axios": "^1.7.7",
     "canvas": "^2.11.2",

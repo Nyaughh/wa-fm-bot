@@ -67,7 +67,7 @@ export class EventHandler {
         const { events, bot } = await this.client.database.getGroup(event.id)
         if (bot && bot !== this.client.config.session) return
         if (!events) return
-        const texts = this.map[event.action]
+        const texts = this.map[event.action as keyof typeof this.map]
         if (!texts) return
         for (const user of event.participants) {
             const text = texts[Math.floor(Math.random() * texts.length)]
