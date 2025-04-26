@@ -6,7 +6,7 @@ import { stripIndents } from 'common-tags'
 
 @Command('topartists', {
     aliases: ['ta'],
-    category: 'LastFM',
+    category: 'Artist',
     description: {
         content: 'LastFM User top artists with their play counts'
     }

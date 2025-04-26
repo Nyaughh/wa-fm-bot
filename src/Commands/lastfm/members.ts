@@ -5,7 +5,7 @@ import { IParsedArgs } from '../../typings/Command'
 
 @Command('members', {
     aliases: ['mems'],
-    category: 'LastFM',
+    category: 'Group',
     description: {
         content: 'LastFM Group Members Info',
         usage: '--all to show all users'

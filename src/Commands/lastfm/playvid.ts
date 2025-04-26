@@ -10,7 +10,7 @@ const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024 // 50MB
 
 @Command('playvideo', {
     aliases: ['playvid'],
-    category: 'LastFM',
+    category: 'Track',
     description: {
         content: 'Plays a YouTube video (max 10 minutes, 50MB)'
     }

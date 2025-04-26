@@ -6,7 +6,7 @@ import { stripIndents } from 'common-tags'
 
 @Command('whoknowscurrenttrack', {
     aliases: ['wct', 'wt'],
-    category: 'LastFM',
+    category: 'Group',
     description: {
         content: 'Who knows the currently playing track in this group'
     }

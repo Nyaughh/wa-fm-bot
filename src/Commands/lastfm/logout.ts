@@ -5,7 +5,7 @@ import Message from '../../Structures/Message'
 @Command('logout', {
     aliases: ['lout'],
     dm: true,
-    category: 'LastFM',
+    category: 'User',
     description: {
         content: 'Logout from your lastfm account.'
     }

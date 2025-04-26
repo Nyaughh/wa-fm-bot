@@ -5,7 +5,7 @@ import { IParsedArgs } from '../../typings/Command'
 import { stripIndents } from 'common-tags'
 @Command('login', {
     aliases: ['l'],
-    category: 'LastFM',
+    category: 'User',
     description: {
         content:  stripIndents`
         Login process:

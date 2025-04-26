@@ -6,7 +6,7 @@ import { stripIndents } from 'common-tags'
 
 @Command('whoknows', {
     aliases: ['w'],
-    category: 'LastFM',
+    category: 'Artist',
     description: {
         content: 'Who knows this artist in this group'
     }

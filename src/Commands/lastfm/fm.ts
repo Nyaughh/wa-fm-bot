@@ -6,7 +6,7 @@ import { stripIndents } from 'common-tags'
 
 @Command('fm', {
     aliases: ['fm'],
-    category: 'LastFM',
+    category: 'Track',
     description: {
         content: 'LastFM User current songs'
     }

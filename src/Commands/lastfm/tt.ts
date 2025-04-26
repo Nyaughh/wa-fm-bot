@@ -6,7 +6,7 @@ import { stripIndents } from 'common-tags'
 
 @Command('toptracks', {
     aliases: ['tt'],
-    category: 'LastFM',
+    category: 'Track',
     description: {
         content: 'LastFM User top tracks with their play counts'
     }

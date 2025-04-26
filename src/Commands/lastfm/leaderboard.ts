@@ -5,7 +5,7 @@ import { IParsedArgs } from '../../typings/Command'
 
 @Command('leaderboard', {
     aliases: ['lb'],
-    category: 'LastFM',
+    category: 'Stats',
     description: {
         content: 'LastFM Group Members Top Scrobbles'
     }
